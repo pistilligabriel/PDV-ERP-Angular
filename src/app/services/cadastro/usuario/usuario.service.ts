@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { environment } from 'src/environments/environment';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError } from 'rxjs';
 import { AuthRequest } from 'src/app/models/interfaces/usuario/auth/AuthRequest';
@@ -8,6 +7,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { Usuarios } from 'src/app/models/interfaces/usuario/response/UsuariosResponse';
 import { AdicionarUsuario } from 'src/app/models/interfaces/usuario/AdicionarUsuario';
 import { EditarUsuario } from 'src/app/models/interfaces/usuario/EditarUsuario';
+import { environment } from 'src/environment/environment';
 
 @Injectable({
   providedIn: 'root',

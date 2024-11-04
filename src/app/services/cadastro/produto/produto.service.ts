@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { CookieService } from 'ngx-cookie-service';
 import { Observable } from 'rxjs';
 import { AdicionarProduto, EditarProduto, Produto } from 'src/app/modules/cadastro/produto/produto.component';
-import { environment } from 'src/environments/environment';
+import { environment } from 'src/environment/environment';
 
 @Injectable({
   providedIn: 'root'

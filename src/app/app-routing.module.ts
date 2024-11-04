@@ -61,6 +61,10 @@ const routes: Routes = [
   //     ).then((m) => m.RegistrationGroupUserModule),
   //   canActivate: [AuthGuardService],
   // },
+  {
+    path:'faturamento/venda',
+    loadChildren: () => import('./modules/venda/venda.module').then((m) => m.VendaModule)
+  },
 
   { path: '**', component: PageNotFoundComponent },
 ];

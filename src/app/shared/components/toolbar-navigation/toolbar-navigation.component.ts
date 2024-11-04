@@ -52,9 +52,9 @@ export class ToolbarNavigationComponent implements OnInit {
             routerLink: ['/billing/purchaseOrder'],
           },
           {
-            label: 'Pedido de Venda',
+            label: 'Venda',
             icon: 'pi pi-fw pi-cart-plus',
-            routerLink: ['/billing/salesOrder'],
+            routerLink: ['/faturamento/venda'],
           },
           {
             label: 'Nota Fiscal',
