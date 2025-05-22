@@ -37,16 +37,18 @@
               [showCurrentPageReport]="true"
               [rowsPerPageOptions]="[5, 10, 25, 50, 100]"
               [globalFilterFields]="[
-                'CODIGO',
+                'codigo',
                 'status',
                 'empresa',
                 'nome',
                 'sobrenome',
+                'tipoDocumento',
+                'documento',
                 'estado',
                 'cidade'
               ]"
               [exportHeader]="'customExportHeader'"
-              dataKey="CODIGO"
+              dataKey="codigo"
               currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
               [filterDelay]="0"
             >
@@ -148,7 +150,7 @@
                   </th> -->
                   <th
                     pResizableColumn
-                    pSortableColumn="CODIGO"
+                    pSortableColumn="codigo"
                     style="width: 3rem"
                   >
                     <div
@@ -162,10 +164,10 @@
                       <div
                         class="flex justify-content-between align-items-center"
                       >
-                        <p-sortIcon field="CODIGO"></p-sortIcon>
+                        <p-sortIcon field="codigo"></p-sortIcon>
                         <p-columnFilter
                           type="text"
-                          field="CODIGO"
+                          field="codigo"
                           display="menu"
                           matchMode="contains"
                           [showMatchModes]="true"
@@ -234,7 +236,7 @@
                   <!-- <td>
                     <p-tableCheckbox [value]="cliente"></p-tableCheckbox>
                   </td> -->
-                  <td>{{ cliente.CODIGO }}</td>
+                  <td>{{ cliente.codigo }}</td>
                   <ng-container *ngFor="let col of columns">
                     <td *ngIf="col.field !== 'status'; else statusColumn">
                       {{ cliente[col.field] }}

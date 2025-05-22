@@ -11,7 +11,7 @@ import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
 import { ClienteService } from 'src/app/services/cadastro/cliente/cliente.service';
 
 export interface Clientes {
-  CODIGO: bigint;
+  codigo: bigint;
   tipoIntegrante: string;
   nome: string;
   sobrenome: string;
@@ -32,7 +32,7 @@ export interface Clientes {
 }
 
 export interface LoadEditCliente {
-  CODIGO: bigint;
+  codigo: bigint;
   nome: string;
   sobrenome: string;
   telefone: string;
@@ -67,7 +67,7 @@ export interface AddCliente {
   complemento:string;
 }
 export interface EditCliente {
-  CODIGO: bigint;
+  codigo: bigint;
   nome: string;
   sobrenome: string;
   telefone: string;
@@ -153,7 +153,7 @@ export class ClienteComponent implements OnInit {
    * Formulário reativo para adicionar/editar grupos de usuários.
    */
   public clienteForm = this.formBuilderCliente.group({
-    CODIGO: [null as bigint | null],
+    codigo: [null as bigint | null],
     nome: ['', [Validators.required]],
     sobrenome: ['', [Validators.required]],
     telefone: ['', [Validators.required]],
@@ -279,8 +279,8 @@ export class ClienteComponent implements OnInit {
    * @returns {boolean} - Verdadeiro se estiver em modo de edição, falso caso contrário.
    */
   isEdicao(): boolean {
-    console.log(this.clienteForm.value.CODIGO)
-    return !!this.clienteForm.value.CODIGO;
+    console.log(this.clienteForm.value.codigo)
+    return !!this.clienteForm.value.codigo;
   }
 
       /**
@@ -291,7 +291,7 @@ export class ClienteComponent implements OnInit {
         console.log('Adicionar cliente' )
         this.showForm = true;
         this.clienteForm.setValue({
-          CODIGO: null,
+          codigo: null,
           nome: null,
           sobrenome: null,
           telefone: null,
@@ -312,7 +312,7 @@ export class ClienteComponent implements OnInit {
       }
 
       onEditButtonClick(cliente: LoadEditCliente): void {
-        const formattedDate = format(new Date(cliente.versao), 'dd/MM/yyyy HH:mm:ss');
+        // const formattedDate = format(new Date(cliente.versao), 'dd/MM/yyyy HH:mm:ss');
 
         if (cliente.status === 'DESATIVADO') {
           this.confirmationService.confirm({
@@ -323,7 +323,7 @@ export class ClienteComponent implements OnInit {
           this.showForm = true;
 
           this.clienteForm.patchValue({
-            CODIGO: cliente.CODIGO,
+            codigo: cliente.codigo,
             nome: cliente.nome,
             sobrenome: cliente.sobrenome,
             telefone: cliente.telefone,
@@ -339,7 +339,7 @@ export class ClienteComponent implements OnInit {
             complemento: cliente.complemento,
             status: cliente.status,
             empresa: cliente.empresa,
-            versao: formattedDate,
+            versao: cliente.versao,
           });
 
           console.log(this.isEdicao());
@@ -348,9 +348,9 @@ export class ClienteComponent implements OnInit {
 
       onDisableButtonClick(cliente: Clientes): void {
         this.clienteForm.patchValue({
-          CODIGO: cliente.CODIGO,
+          codigo: cliente.codigo,
         });
-        this.desativarCliente(cliente.CODIGO as bigint);
+        this.desativarCliente(cliente.codigo as bigint);
       }
 
       disableSelectedClientes() {
@@ -485,7 +485,7 @@ export class ClienteComponent implements OnInit {
       //TODO - Carregar as informações preenchidas antes de editar
     if (this.clienteForm?.valid) {
       const requestEditCliente: EditCliente = {
-        CODIGO: this.clienteForm.value.CODIGO as bigint,
+        codigo: this.clienteForm.value.codigo as bigint,
         nome: this.clienteForm.value.nome as string,
         sobrenome: this.clienteForm.value.sobrenome as string,
         telefone: this.clienteForm.value.telefone as string,
@@ -544,14 +544,14 @@ export class ClienteComponent implements OnInit {
   /**
    * Desativa um cliente com o código fornecido.
    *
-   * @param {bigint} CODIGO - Código do cliente a ser desativado.
+   * @param {bigint} codigo - Código do cliente a ser desativado.
    * @returns {void}
    */
-  desativarCliente(CODIGO: bigint): void {
-    console.log('Alterar o Status!:', CODIGO);
-    if (CODIGO) {
+  desativarCliente(codigo: bigint): void {
+    console.log('Alterar o Status!:', codigo);
+    if (codigo) {
       this.clienteService
-        .desativarCliente(CODIGO)
+        .desativarCliente(codigo)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {

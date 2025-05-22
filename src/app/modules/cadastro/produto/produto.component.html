@@ -1,12 +1,7 @@
 <div class="card flex justify-content-center gap-2">
   <p-toast></p-toast>
-  <p-confirmDialog
-    header="Título do Diálogo"
-    icon="pi pi-exclamation-triangle"
-    [acceptLabel]="'OK'"
-    [rejectVisible]="false"
-    [closable]="false"
-  ></p-confirmDialog>
+  <p-confirmDialog header="Título do Diálogo" icon="pi pi-exclamation-triangle" [acceptLabel]="'OK'"
+    [rejectVisible]="false" [closable]="false"></p-confirmDialog>
 </div>
 
 <app-toolbar-navigation></app-toolbar-navigation>
@@ -19,47 +14,23 @@
         <div *ngIf="!showForm" class="grid">
           <div class="col-12">
             <div class="flex justify-content-end"></div>
-            <p-table
-              #tabelaProduto
-              [columns]="colunasSelecionadas"
-              [value]="produtoDatas"
-              [(selection)]="produtoSelecionado"
-              (onRowSelect)="onRowSelect($event)"
-              selectionMode="multiple"
-              [rows]="5"
-              [paginator]="true"
-              [responsive]="true"
-              [resizableColumns]="true"
-              columnResizeMode="expand"
-              styleClass="p-datatable-gridlines"
-              [tableStyle]="{ 'min-width': '50rem' }"
-              [rowHover]="true"
-              [showCurrentPageReport]="true"
-              [rowsPerPageOptions]="[5, 10, 25, 50, 100]"
-              [globalFilterFields]="[
+            <p-table #tabelaProduto [columns]="colunasSelecionadas" [value]="produtoDatas"
+              [(selection)]="produtoSelecionado" (onRowSelect)="onRowSelect($event)" selectionMode="multiple" [rows]="5"
+              [paginator]="true" [responsive]="true" [resizableColumns]="true" columnResizeMode="expand"
+              styleClass="p-datatable-gridlines" [tableStyle]="{ 'min-width': '50rem' }" [rowHover]="true"
+              [showCurrentPageReport]="true" [rowsPerPageOptions]="[5, 10, 25, 50, 100]" [globalFilterFields]="[
                 'CODIGO',
                 'status',
                 'descricao',
                 'estoque',
                 'valor'
-              ]"
-              [exportHeader]="'customExportHeader'"
-              dataKey="CODIGO"
-              currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
-              [filterDelay]="0"
-            >
+              ]" [exportHeader]="'customExportHeader'" dataKey="CODIGO"
+              currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros" [filterDelay]="0">
               <ng-template pTemplate="caption">
                 <div class="flex">
                   <div class="mr-5">
-                    <button
-                      type="button"
-                      class="mr-2"
-                      pButton
-                      pRipple
-                      icon="pi pi-plus"
-                      pTooltip="Adicionar Produtos"
-                      (click)="onAddButtonClick()"
-                    >
+                    <button type="button" class="mr-2" pButton pRipple icon="pi pi-plus" pTooltip="Adicionar Produtos"
+                      (click)="onAddButtonClick()">
                       Adicionar
                     </button>
                     <!-- <button
@@ -75,66 +46,29 @@
                   </div>
 
                   <div class="flex justify-content-center mr-5">
-                    <button
-                      type="button"
-                      pButton
-                      pRipple
-                      icon="pi pi-file"
-                      (click)="tabelaProduto.exportCSV()"
-                      class="mr-2"
-                      pTooltip="CSV - Exportar os dados da tabela com formato csv."
-                      tooltipPosition="bottom"
-                    ></button>
-                    <button
-                      type="button"
-                      pButton
-                      pRipple
-                      icon="pi pi-file-excel"
-                      (click)="exportExcel()"
-                      class="p-button-success mr-2"
-                      pTooltip="XLS - Exportar os dados da tabela com formato xls."
-                      tooltipPosition="bottom"
-                    ></button>
-                    <button
-                      type="button"
-                      pButton
-                      pRipple
-                      icon="pi pi-file-pdf"
-                      (click)="exportPdf()"
-                      class="p-button-warning mr-2"
-                      pTooltip="PDF - Exportar os dados da tabela com formato pdf."
-                      tooltipPosition="bottom"
-                    ></button>
+                    <button type="button" pButton pRipple icon="pi pi-file" (click)="tabelaProduto.exportCSV()"
+                      class="mr-2" pTooltip="CSV - Exportar os dados da tabela com formato csv."
+                      tooltipPosition="bottom"></button>
+                    <button type="button" pButton pRipple icon="pi pi-file-excel" (click)="exportExcel()"
+                      class="p-button-success mr-2" pTooltip="XLS - Exportar os dados da tabela com formato xls."
+                      tooltipPosition="bottom"></button>
+                    <button type="button" pButton pRipple icon="pi pi-file-pdf" (click)="exportPdf()"
+                      class="p-button-warning mr-2" pTooltip="PDF - Exportar os dados da tabela com formato pdf."
+                      tooltipPosition="bottom"></button>
                   </div>
 
-                  <p-multiSelect
-                    pTooltip="Desmarque as colunas que serão ocultadas"
-                    [options]="cols"
-                    [(ngModel)]="colunasSelecionadas"
-                    optionLabel="header"
-                    selectedItemsLabel="Ocultar Colunas"
-                    [style]="{ 'min-width': '200px' }"
-                    placeholder="Selecione as Colunas"
-                  >
+                  <p-multiSelect pTooltip="Desmarque as colunas que serão ocultadas" [options]="cols"
+                    [(ngModel)]="colunasSelecionadas" optionLabel="header" selectedItemsLabel="Ocultar Colunas"
+                    [style]="{ 'min-width': '200px' }" placeholder="Selecione as Colunas">
                   </p-multiSelect>
 
                   <span class="p-input-icon-left ml-auto mr-2">
                     <i class="pi pi-search"></i>
-                    <input
-                      pInputText
-                      type="text"
-                      [(ngModel)]="valorPesquisa"
-                      (input)="applyFilterGlobal($event, 'contains')"
-                      placeholder="Pesquisar"
-                    />
+                    <input pInputText type="text" [(ngModel)]="valorPesquisa"
+                      (input)="applyFilterGlobal($event, 'contains')" placeholder="Pesquisar" />
                   </span>
-                  <button
-                    pButton
-                    label="Limpar"
-                    class="p-button-outlined"
-                    icon="pi pi-filter-slash"
-                    (click)="clear(tabelaProduto)"
-                  ></button>
+                  <button pButton label="Limpar" class="p-button-outlined" icon="pi pi-filter-slash"
+                    (click)="clear(tabelaProduto)"></button>
                 </div>
               </ng-template>
 
@@ -144,61 +78,27 @@
                   <!-- <th style="width: 4rem">
                     <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                   </th> -->
-                  <th
-                    pResizableColumn
-                    pSortableColumn="CODIGO"
-                    style="width: 3rem"
-                  >
-                    <div
-                      class="flex justify-content-between align-items-center"
-                    >
-                      <div
-                        class="flex justify-content-between align-items-center"
-                      >
+                  <th pResizableColumn pSortableColumn="CODIGO" style="width: 3rem">
+                    <div class="flex justify-content-between align-items-center">
+                      <div class="flex justify-content-between align-items-center">
                         ID
                       </div>
-                      <div
-                        class="flex justify-content-between align-items-center"
-                      >
+                      <div class="flex justify-content-between align-items-center">
                         <p-sortIcon field="CODIGO"></p-sortIcon>
-                        <p-columnFilter
-                          type="text"
-                          field="CODIGO"
-                          display="menu"
-                          matchMode="contains"
-                          [showMatchModes]="true"
-                          [showOperator]="false"
-                          [showAddButton]="true"
-                        ></p-columnFilter>
+                        <p-columnFilter type="text" field="CODIGO" display="menu" matchMode="contains"
+                          [showMatchModes]="true" [showOperator]="false" [showAddButton]="true"></p-columnFilter>
                       </div>
                     </div>
                   </th>
-                  <th
-                    *ngFor="let col of columns"
-                    pResizableColumn
-                    [pSortableColumn]="col.field"
-                  >
-                    <div
-                      class="flex justify-content-between align-items-center"
-                    >
-                      <div
-                        class="flex justify-content-between align-items-center"
-                      >
+                  <th *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field">
+                    <div class="flex justify-content-between align-items-center">
+                      <div class="flex justify-content-between align-items-center">
                         {{ col.header }}
                       </div>
-                      <div
-                        class="flex justify-content-between align-items-center"
-                      >
+                      <div class="flex justify-content-between align-items-center">
                         <p-sortIcon field="{{ col.field }}"></p-sortIcon>
-                        <p-columnFilter
-                          type="text"
-                          [field]="col.field"
-                          display="menu"
-                          matchMode="contains"
-                          [showMatchModes]="true"
-                          [showOperator]="false"
-                          [showAddButton]="true"
-                        ></p-columnFilter>
+                        <p-columnFilter type="text" [field]="col.field" display="menu" matchMode="contains"
+                          [showMatchModes]="true" [showOperator]="false" [showAddButton]="true"></p-columnFilter>
                       </div>
                     </div>
                   </th>
@@ -208,25 +108,11 @@
               <ng-template pTemplate="body" let-produto let-columns="columns">
                 <tr>
                   <td>
-                    <div
-                      class="flex justify-content-center gap-2 align-content-center align-items-center"
-                    >
-                      <button
-                        pButton
-                        pRipple
-                        class="p-button-rounded p-button-text"
-                        icon="pi pi-pencil"
-                        pTooltip="Editar Produto"
-                        (click)="onEditButtonClick(produto)"
-                      ></button>
-                      <button
-                        pButton
-                        pRipple
-                        class="p-button-rounded p-button-text p-button-danger"
-                        icon="pi pi-ban"
-                        pTooltip="Desativar Produto"
-                        (click)="onDisableButtonClick(produto)"
-                      ></button>
+                    <div class="flex justify-content-center gap-2 align-content-center align-items-center">
+                      <button pButton pRipple class="p-button-rounded p-button-text" icon="pi pi-pencil"
+                        pTooltip="Editar Produto" (click)="onEditButtonClick(produto)"></button>
+                      <button pButton pRipple class="p-button-rounded p-button-text p-button-danger" icon="pi pi-ban"
+                        pTooltip="Desativar Produto" (click)="onDisableButtonClick(produto)"></button>
                     </div>
                   </td>
                   <!-- <td>
@@ -239,10 +125,7 @@
                     </td>
                     <ng-template #statusColumn>
                       <td>
-                        <p-tag
-                          [value]="produto.status"
-                          [severity]="getSeverity(produto.status)"
-                        ></p-tag>
+                        <p-tag [value]="produto.status" [severity]="getSeverity(produto.status)"></p-tag>
                       </td>
                     </ng-template>
                   </ng-container>
@@ -294,106 +177,67 @@
                 </div>
 
                 <div class="p-float-label flex flex-column mr-4">
-                  <input pInputText formControlName="descricao"  style="width: 500px;"/>
+                  <input pInputText formControlName="descricao" style="width: 500px;" />
                   <label for="float-label">Descrição</label>
                 </div>
 
                 <div class="flex flex-column mr-4">
                   <div class="p-float-label flex flex-column mr-2">
-                    <p-dropdown
-                    optionValue="descricao"
-                    optionLabel="descricao"
-                    formControlName="unidadeVenda"
-                    [options]="unidadeMedidas"
-                    [(ngModel)]="unidadeMedidaSelecionada"
-                    [style]="{ width: '250px' }"
-                    />
+                    <p-dropdown optionValue="descricao" optionLabel="descricao" formControlName="unidadeVenda"
+                      [options]="unidadeMedidas" [(ngModel)]="unidadeMedidaSelecionada" [style]="{ width: '250px' }" />
                     <label for="float-label">Unidade Venda</label>
                   </div>
                 </div>
 
+                <div class="flex flex-row mr-2 mb-4">
                   <div class="p-float-label flex flex-column mr-2">
-                  <input pInputText type="text" formControlName="fabricante" style="width: 250px;" />
-                  <label for="float-label">Marca</label>
+                    <input pInputText type="text" formControlName="fabricante" style="width: 250px;" />
+                    <label for="float-label">Marca</label>
                   </div>
-                  <div class="flex flex-row mr-2">
+                  <div class="p-float-label flex flex-column mr-2">
+                    <input pInputText formControlName="modelo" style="width: 250px;" />
+                    <label for="float-label">Modelo</label>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-row mr-2">
+                <div class="p-float-label flex flex-column mr-2">
+                  <p-inputNumber formControlName="precoCusto" inputId="custo" mode="currency" currency="BRL"
+                    locale="pt-BR" />
+                  <label for="float-label">Custo</label>
+                </div>
 
                 <div class="p-float-label flex flex-column mr-2">
-                  <input pInputText type="text" formControlName="codigoOriginal">
-                  <label for="float-label">Código Original</label>
-                  </div>
+                  <p-inputNumber formControlName="estoque" inputId="estoque" />
+                  <label for="float-label">Estoque</label>
+                </div>
 
-                  <div class="flex flex-row mr-4">
-                    <div class="p-float-label flex flex-column mr-2">
-                      <input pInputText  formControlName="codigoBarras" style="width: 250px;" />
-                    <label for="float-label">Código Barras</label>
-                    </div>
-                  </div>
-                  </div>
-                  <div class="flex flex-row mr-2">
-                    <div class="p-float-label flex flex-column mr-2">
-                      <p-inputNumber
-                      formControlName="precoCusto"
-                      inputId="custo"
-                      mode="currency"
-                      currency="BRL"
-                      locale="pt-BR" />
-                    <label for="float-label">Custo</label>
-                    </div>
+                <div class="p-float-label flex flex-column mr-2">
+                  <p-inputNumber formControlName="precoVenda" inputId="valor" mode="currency" currency="BRL"
+                    locale="pt-BR" />
+                  <label for="float-label">Valor Venda</label>
+                </div>
 
-                    <div class="p-float-label flex flex-column mr-2">
-                      <p-inputNumber
-                      formControlName="estoque"
-                      inputId="estoque"/>
-                    <label for="float-label">Estoque</label>
-                    </div>
-
-                    <div class="p-float-label flex flex-column mr-2">
-                      <p-inputNumber
-                      formControlName="precoVenda"
-                      inputId="valor"
-                      mode="currency"
-                      currency="BRL"
-                      locale="pt-BR" />
-                    <label for="float-label">Valor Venda</label>
-                    </div>
-
-                    <div class="p-float-label flex flex-column mr-2">
-                      <p-inputNumber
-                      suffix="%"
-                      formControlName="margemLucro"
-                      inputId="margemLucro"
-                      />
-                    <label for="float-label">Margem Lucro(%)</label>
-                    </div>
-                    </div>
-
+                <div class="p-float-label flex flex-column mr-2">
+                  <p-inputNumber suffix="%" formControlName="margemLucro" inputId="margemLucro" />
+                  <label for="float-label">Margem Lucro(%)</label>
+                </div>
               </div>
             </form>
 
             <div class="mt-2">
               <div class="card flex flex-column md:flex-column gap-4">
-                <div
-                  class="flex flex-row justify-content-left align-content-center align-itens-center m-1"
-                >
-                  <p-button
-                    class="mr-2"
-                    (onClick)="adicionarOuEditarProduto()"
-                    [disabled]="!produtoForm.valid"
-                    type="submit"
-                    label="Confirmar"
-                  ></p-button>
-                  <p-button
-                    type="submit"
-                    label="Cancelar"
-                    styleClass="red-button"
-                    (onClick)="cancelarFormulario()"
-                  ></p-button>
+                <div class="flex flex-row justify-content-left align-content-center align-itens-center m-1">
+                  <p-button class="mr-2" (onClick)="adicionarOuEditarProduto()" [disabled]="!produtoForm.valid"
+                    type="submit" label="Confirmar"></p-button>
+                  <p-button type="submit" label="Cancelar" styleClass="red-button"
+                    (onClick)="cancelarFormulario()"></p-button>
                 </div>
               </div>
             </div>
-          </div></div
-      ></p-card>
+          </div>
+        </div>
+      </p-card>
     </div>
   </div>
 </div>

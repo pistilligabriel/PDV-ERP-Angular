@@ -1,5 +1,5 @@
 export interface Usuarios {
-  CODIGO: bigint;
+  codigo: bigint;
   nome: string;
   sobrenome: string;
   telefone:string;

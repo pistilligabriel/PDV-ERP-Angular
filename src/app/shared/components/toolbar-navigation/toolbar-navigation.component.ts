@@ -15,7 +15,7 @@ export class ToolbarNavigationComponent implements OnInit {
   constructor(
     private cookie: CookieService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.items = [
@@ -39,6 +39,14 @@ export class ToolbarNavigationComponent implements OnInit {
           {
             label: 'Produto',
             routerLink: ['/produto'],
+          },
+          {
+            label: 'Unidade Medida',
+            routerLink: ['/unidade-medida'],
+          },
+          {
+            label: 'Marca',
+            routerLink: ['/marca'],
           },
         ],
       },

@@ -14,16 +14,16 @@
 <div>
   <div class="grid">
     <div class="col-12">
-      <p-card header="Usuários" styleClass="shadow-3 m-1 text-indigo-800">
+      <p-card header="Marca" styleClass="shadow-3 m-1 text-indigo-800">
         <!--TABELA DE USUARIOS-->
         <div *ngIf="!showForm" class="grid">
           <div class="col-12">
             <div class="flex justify-content-end"></div>
             <p-table
-              #tabelaUsuario
+              #tabelaMarca
               [columns]="colunasSelecionadas"
-              [value]="userDatas"
-              [(selection)]="userSelected"
+              [value]="marcaDatas"
+              [(selection)]="marcaSelected"
               (onRowSelect)="onRowSelect($event)"
               selectionMode="multiple"
               [rows]="5"
@@ -39,13 +39,11 @@
               [globalFilterFields]="[
                 'codigo',
                 'status',
-                'nome',
-                'sobrenome',
-                'documento',
-                'login',
+                'descricao',
+                'abreviacao'
               ]"
               [exportHeader]="'customExportHeader'"
-              dataKey="CODIGO"
+              dataKey="codigo"
               currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
               [filterDelay]="0"
             >
@@ -58,7 +56,7 @@
                       pButton
                       pRipple
                       icon="pi pi-plus"
-                      pTooltip="Adicionar Usuário"
+                      pTooltip="Adicionar Marca"
                       (click)="onAddButtonClick()"
                     >
                       Adicionar
@@ -69,7 +67,7 @@
                       icon="pi pi-ban"
                       class="p-button-danger"
                       (click)="disableSelectedUsers()"
-                      [disabled]="!userSelected || !userSelected.length"
+                      [disabled]="!unidadeSelected || !unidadeSelected.length"
                     ></button> -->
                   </div>
 
@@ -79,7 +77,7 @@
                       pButton
                       pRipple
                       icon="pi pi-file"
-                      (click)="tabelaUsuario.exportCSV()"
+                      (click)="tabelaMarca.exportCSV()"
                       class="mr-2"
                       pTooltip="CSV - Exportar os dados da tabela com formato csv."
                       tooltipPosition="bottom"
@@ -132,7 +130,7 @@
                     label="Limpar"
                     class="p-button-outlined"
                     icon="pi pi-filter-slash"
-                    (click)="clear(tabelaUsuario)"
+                    (click)="clear(tabelaMarca)"
                   ></button>
                 </div>
               </ng-template>
@@ -204,7 +202,7 @@
                 </tr>
               </ng-template>
 
-              <ng-template pTemplate="body" let-user let-columns="columns">
+              <ng-template pTemplate="body" let-marca let-columns="columns">
                 <tr>
                   <td>
                     <div
@@ -215,32 +213,32 @@
                         pRipple
                         class="p-button-rounded p-button-text"
                         icon="pi pi-pencil"
-                        pTooltip="Editar Usuário"
-                        (click)="onEditButtonClick(user)"
+                        pTooltip="Editar Marca"
+                        (click)="onEditButtonClick(marca)"
                       ></button>
                       <button
                         pButton
                         pRipple
                         class="p-button-rounded p-button-text p-button-danger"
                         icon="pi pi-ban"
-                        pTooltip="Desativar Usuário"
-                        (click)="onDisableButtonClick(user)"
+                        pTooltip="Desativar Marca"
+                        (click)="onDisableButtonClick(marca)"
                       ></button>
                     </div>
                   </td>
                   <!-- <td>
                     <p-tableCheckbox [value]="user"></p-tableCheckbox>
                   </td> -->
-                  <td>{{ user.codigo }}</td>
+                  <td>{{ marca.codigo }}</td>
                   <ng-container *ngFor="let col of columns">
                     <td *ngIf="col.field !== 'status'; else statusColumn">
-                      {{ user[col.field] }}
+                      {{ marca[col.field] }}
                     </td>
                     <ng-template #statusColumn>
                       <td>
                         <p-tag
-                          [value]="user.status"
-                          [severity]="getSeverity(user.status)"
+                          [value]="marca.status"
+                          [severity]="getSeverity(marca.status)"
                         ></p-tag>
                       </td>
                     </ng-template>
@@ -250,8 +248,8 @@
 
               <ng-template pTemplate="summary">
                 <div class="text-center">
-                  Total de {{ userDatas ? userDatas.length : 0 }} Usuários
-                  Cadastrados.
+                  Total de {{ marcaDatas ? marcaDatas.length : 0 }} Marcas
+                  Cadastradas.
                 </div>
               </ng-template>
 
@@ -267,7 +265,7 @@
         <!--FORMULARIO DE USUARIOS-->
         <div *ngIf="showForm" class="mt-2">
           <div class="gap-4">
-            <form [formGroup]="userForm" (ngSubmit)="adicionarOuEditarUsuario()">
+            <form [formGroup]="marcaForm" (ngSubmit)="adicionarOuEditarMarca()">
               <div class="card flex flex-column md:flex-column gap-4">
                 <div class="flex flex-row">
                   <div class="flex flex-column mr-2">
@@ -287,45 +285,10 @@
                 </div>
 
                 <div class="p-float-label flex flex-column mr-4">
-                  <input pInputText formControlName="nome"  style="width: 500px;"/>
-                  <label for="float-label">Nome</label>
+                  <input pInputText formControlName="descricao"  style="width: 500px;"/>
+                  <label for="float-label">Descrição</label>
                 </div>
 
-                <div class="p-float-label flex flex-column mr-4">
-                  <input pInputText type="text" formControlName="sobrenome" style="width: 500px;"/>
-                  <label for="float-label">Sobrenome</label>
-                </div>
-
-                <div class="flex flex-row mr-4">
-                  <div class="p-float-label flex flex-column mr-2">
-                  <p-inputMask mask="(99)99999-9999" type="phone" formControlName="telefone" />
-                  <label for="float-label">Telefone</label>
-                  </div>
-
-                  <div class="p-float-label flex flex-column mr-2">
-                  <input pInputText type="email" formControlName="email" style="width: 250px;" />
-                  <label for="float-label">E-mail</label>
-                  </div>
-                </div>
-
-                <div class="p-float-label flex flex-column mr-2">
-                  <p-inputMask type="text"
-                  mask="999.999.999-99"
-                  formControlName="documento"/>
-                  <label for="float-label">Documento</label>
-                  </div>
-
-                  <div class="flex flex-row mr-4">
-                    <div class="p-float-label flex flex-column mr-2">
-                      <input pInputText  formControlName="login" style="width: 250px;" />
-                    <label for="float-label">Login</label>
-                    </div>
-
-                    <div class="p-float-label flex flex-column mr-2">
-                    <input pInputText type="password" formControlName="password" style="width: 250px;" />
-                    <label for="float-label">Senha</label>
-                    </div>
-                  </div>
               </div>
             </form>
 
@@ -336,8 +299,8 @@
                 >
                   <p-button
                     class="mr-2"
-                    (onClick)="adicionarOuEditarUsuario()"
-                    [disabled]="!userForm.valid"
+                    (onClick)="adicionarOuEditarMarca()"
+                    [disabled]="!marcaForm.valid"
                     type="submit"
                     label="Confirmar"
                   ></p-button>

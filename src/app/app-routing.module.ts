@@ -45,22 +45,22 @@ const routes: Routes = [
       ),
     canActivate: [AuthGuardService],
   },
-  // {
-  //   path: 'registration/group/member',
-  //   loadChildren: () =>
-  //     import(
-  //       './modules/registration/group/member/registration-group-member.module'
-  //     ).then((m) => m.RegistrationGroupMemberModule),
-  //   canActivate: [AuthGuardService],
-  // },
-  // {
-  //   path: 'registration/group/user',
-  //   loadChildren: () =>
-  //     import(
-  //       './modules/registration/group/user/registration-group-user.module'
-  //     ).then((m) => m.RegistrationGroupUserModule),
-  //   canActivate: [AuthGuardService],
-  // },
+  {
+    path: 'marca',
+    loadChildren: () =>
+      import(
+        './modules/cadastro/marca/marca.module'
+      ).then((m) => m.MarcaModule),
+    canActivate: [AuthGuardService],
+  },
+  {
+    path: 'unidade-medida',
+    loadChildren: () =>
+      import(
+        './modules/cadastro/unidade-medida/unidade-medida.module'
+      ).then((m) => m.UnidadeMedidaModule),
+    canActivate: [AuthGuardService],
+  },
   {
     path:'faturamento/venda',
     loadChildren: () => import('./modules/venda/venda.module').then((m) => m.VendaModule)
