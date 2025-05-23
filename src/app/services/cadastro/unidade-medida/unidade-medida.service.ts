@@ -28,8 +28,8 @@ constructor(
     return this.http.post<Array<UnidadeMedida>>(`${this.API_URL}/unidade-medida`,unidade,this.httpOptions)
   }
   
-  editUnidade(requestData:EditarUnidade):Observable<Array<UnidadeMedida>>{
-    return this.http.put<Array<UnidadeMedida>>(`${this.API_URL}/unidade-medida`,requestData,this.httpOptions)
+  editUnidade(requestData:EditarUnidade):Observable<UnidadeMedida>{
+    return this.http.put<UnidadeMedida>(`${this.API_URL}/unidade-medida`,requestData,this.httpOptions)
   }
 
   desativarUnidade(codigo:bigint):Observable<UnidadeMedida>{

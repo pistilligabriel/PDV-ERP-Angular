@@ -27,8 +27,8 @@ constructor(
     return this.http.post<Array<Marca>>(`${this.API_URL}/fabricantes`,marca,this.httpOptions)
   }
   
-  editMarca(requestData:EditarMarca):Observable<Array<Marca>>{
-    return this.http.put<Array<Marca>>(`${this.API_URL}/fabricantes`,requestData,this.httpOptions)
+  editMarca(requestData:EditarMarca):Observable<Marca>{
+    return this.http.put<Marca>(`${this.API_URL}/fabricantes`,requestData,this.httpOptions)
   }
 
   desativarMarca(codigo:bigint):Observable<Marca>{

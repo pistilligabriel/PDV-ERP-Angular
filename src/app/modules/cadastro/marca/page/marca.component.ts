@@ -231,11 +231,10 @@ export class MarcaComponent implements OnInit, OnDestroy {
 
   onEditButtonClick(marca: CarregarEditarMarca): void {
     //TODO: receber versao backend e formatar para exibição
-
     if (marca.status === 'DESATIVADO') {
       this.confirmationService.confirm({
         header: 'Aviso',
-        message: 'Não é permitido editar uma unidade desativada.',
+        message: 'Não é permitido editar uma marca desativada.',
       });
     } else {
       this.showForm = true;
@@ -245,7 +244,7 @@ export class MarcaComponent implements OnInit, OnDestroy {
         status: marca.status,
         empresa: marca.empresa,
         versao: marca.versao,
-      });
+      }); 
 
       console.log(this.isEdicao());
     }
@@ -260,18 +259,18 @@ export class MarcaComponent implements OnInit, OnDestroy {
   }
 
 
-  disableSelectedUnidades() {
-    this.confirmationService.confirm({
-      message: 'Tem certeza de que deseja excluir os usuarios selecionados?',
-      header: 'Confirmar',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        this.marcaDatas = this.marcaDatas.filter((val) => !this.marcaSelected?.includes(val));
-        this.marcaSelected = null;
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Marcas Excluídas', life: 3000 });
-      }
-    });
-  }
+  // disableSelectedMarcas() {
+  //   this.confirmationService.confirm({
+  //     message: 'Tem certeza de que deseja excluir os usuarios selecionados?',
+  //     header: 'Confirmar',
+  //     icon: 'pi pi-exclamation-triangle',
+  //     accept: () => {
+  //       this.marcaDatas = this.marcaDatas.filter((val) => !this.marcaSelected?.includes(val));
+  //       this.marcaSelected = null;
+  //       this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Marcas Excluídas', life: 3000 });
+  //     }
+  //   });
+  // }
 
 
     /**
@@ -399,7 +398,7 @@ export class MarcaComponent implements OnInit, OnDestroy {
   editarMarca(): void {
     const codigo = this.marcaForm.value.codigo as bigint;
     this.carregarInformacaoMarca(codigo)
-
+    console.log('metodo editar')
     if (this.marcaForm?.valid) {
       const requestEditMarca: EditarMarca = {
         codigo: this.marcaForm.value.codigo as bigint,
@@ -487,7 +486,7 @@ export class MarcaComponent implements OnInit, OnDestroy {
       this.messageService.add({
         severity: 'warn',
         summary: 'Atenção',
-        detail: 'Selecione uma unidade!',
+        detail: 'Selecione uma marca!',
         life: 3000,
       });
     }

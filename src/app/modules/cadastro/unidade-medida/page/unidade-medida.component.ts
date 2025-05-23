@@ -122,8 +122,8 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
 
     this.cols = [
       { field: 'status', header: 'Status' },
-      { field: 'descricao', header: 'Descricao' },
-      { field: 'simbolo', header: 'Simbolo' },
+      { field: 'descricao', header: 'Descrição' },
+      { field: 'simbolo', header: 'Símbolo' },
     ];
 
     this.colunasSelecionadas = this.cols;
@@ -227,21 +227,21 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
  * Exibe o formulário de adição de grupo.
  */
   onAddButtonClick() {
+    const formattedDate = format(new Date(), 'dd/MM/yyyy hh:mm:ss')
     this.showForm = true;
     this.unidadeForm.setValue({
       codigo: null,
       descricao: null,
       simbolo: null,
-      status: null,
+      status: 'ATIVO',
       empresa: 1,
-      versao: null,
+      versao:formattedDate,
     });
   }
 
 
 
   onEditButtonClick(unidade: CarregarEditarUnidadeMedida): void {
-    const formattedDate = format(new Date(unidade.versao), 'dd/MM/yyyy HH:mm:ss');
     if (unidade.status === 'DESATIVADO') {
       this.confirmationService.confirm({
         header: 'Aviso',
@@ -255,7 +255,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
         simbolo: unidade.simbolo,
         status: unidade.status,
         empresa: unidade.empresa,
-        versao: formattedDate, // TODO: Ajustar formato da data
+        versao: unidade.versao, // TODO: Ajustar formato da data
       });
       console.log(unidade)
 
