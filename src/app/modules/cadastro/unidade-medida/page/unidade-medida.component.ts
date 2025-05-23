@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { format } from 'date-fns';
 import * as FileSaver from 'file-saver';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { Table } from 'primeng/table';
+import { Table, TableRowUnSelectEvent } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
 import { Column } from 'src/app/models/interfaces/Column';
 import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
@@ -12,29 +12,29 @@ import { UnidadeMedidaService } from 'src/app/services/cadastro/unidade-medida/u
 
 export interface UnidadeMedida {
   codigo: bigint;
-  descricao:string;
-  abreviacao:string;
+  descricao: string;
+  simbolo: string;
   status: string;
   empresa: number;
   versao: string;
 }
 
 export interface AdicionarUnidade {
-  descricao:string;
-  abreviacao:string;
+  descricao: string;
+  simbolo: string;
 }
 
 export interface EditarUnidade {
   codigo: bigint;
-  descricao:string;
-  abreviacao:string;
+  descricao: string;
+  simbolo: string;
 }
 
 
 export interface CarregarEditarUnidadeMedida {
   codigo: bigint;
-  descricao:string;
-  abreviacao:string;
+  descricao: string;
+  simbolo: string;
   status: string;
   empresa: number;
   versao: string;
@@ -47,6 +47,8 @@ export interface CarregarEditarUnidadeMedida {
   styleUrls: []
 })
 export class UnidadeMedidaComponent implements OnInit, OnDestroy {
+  
+
   private destroy$: Subject<void> = new Subject<void>();
 
   @ViewChild('tabelaUnidadeMedida') tabelaUnidadeMedida: Table | undefined;
@@ -62,6 +64,8 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
   public unidadeDatas: Array<UnidadeMedida> = [];
 
   public unidadeSelected!: UnidadeMedida[] | null;
+
+  public unidade!: UnidadeMedida;
 
   /**
    * Valor digitado no campo de pesquisa
@@ -94,7 +98,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
     private router: Router,
     private formBuilderUser: FormBuilder,
     private confirmationService: ConfirmationService,
-  ) {}
+  ) { }
 
 
   /**
@@ -103,7 +107,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
   public unidadeForm = this.formBuilderUser.group({
     codigo: [null as bigint | null],
     descricao: ['', [Validators.required]],
-    abreviacao: ['', [Validators.required]],
+    simbolo: ['', [Validators.required]],
     status: [{ value: '', disabled: true }],
     empresa: [{ value: 1, disabled: true }],
     versao: [{ value: null as Date | string | null, disabled: true }],
@@ -118,11 +122,11 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
 
     this.cols = [
       { field: 'status', header: 'Status' },
-      {field:'descricao', header: 'Descricao'},
-      { field: 'abreviacao', header: 'Abreviacao' },
-  ];
+      { field: 'descricao', header: 'Descricao' },
+      { field: 'simbolo', header: 'Simbolo' },
+    ];
 
-  this.colunasSelecionadas = this.cols;
+    this.colunasSelecionadas = this.cols;
 
   }
 
@@ -178,12 +182,12 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
     );
   }
 
-    /**
-   * Retorna a severidade com base no status fornecido.
-   *
-   * @param {string} status - Status a ser avaliado.
-   * @returns {string} - Severidade correspondente.
-   */
+  /**
+ * Retorna a severidade com base no status fornecido.
+ *
+ * @param {string} status - Status a ser avaliado.
+ * @returns {string} - Severidade correspondente.
+ */
   getSeverity(status: string) {
     switch (status) {
       case 'ATIVO':
@@ -203,7 +207,8 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
    */
   onRowSelect(event: any) {
     console.log('Row selected:', event.data);
-    this.unidadeSelected = event.data;
+    this.unidade = event.data;
+    console.log('Unidade selecionada:', this.unidade);
   }
 
   /**
@@ -217,16 +222,16 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
     return !!this.unidadeForm.value.codigo;
   }
 
-    /**
-   * Manipulador de eventos para o botão de adição de grupo.
-   * Exibe o formulário de adição de grupo.
-   */
+  /**
+ * Manipulador de eventos para o botão de adição de grupo.
+ * Exibe o formulário de adição de grupo.
+ */
   onAddButtonClick() {
     this.showForm = true;
     this.unidadeForm.setValue({
       codigo: null,
       descricao: null,
-      abreviacao: null,
+      simbolo: null,
       status: null,
       empresa: 1,
       versao: null,
@@ -237,7 +242,6 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
 
   onEditButtonClick(unidade: CarregarEditarUnidadeMedida): void {
     const formattedDate = format(new Date(unidade.versao), 'dd/MM/yyyy HH:mm:ss');
-
     if (unidade.status === 'DESATIVADO') {
       this.confirmationService.confirm({
         header: 'Aviso',
@@ -248,11 +252,12 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
       this.unidadeForm.patchValue({
         codigo: unidade.codigo,
         descricao: unidade.descricao,
-        abreviacao: unidade.abreviacao,
+        simbolo: unidade.simbolo,
         status: unidade.status,
         empresa: unidade.empresa,
-        versao: formattedDate,
+        versao: formattedDate, // TODO: Ajustar formato da data
       });
+      console.log(unidade)
 
       console.log(this.isEdicao());
     }
@@ -263,7 +268,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
     this.unidadeForm.patchValue({
       codigo: unidade.codigo,
     });
-    this.desativarUsuario(unidade.codigo as bigint);
+    this.desativarUnidade(unidade.codigo as bigint);
   }
 
 
@@ -281,9 +286,9 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
   }
 
 
-    /**
-   * Cancela o formulário de adição/editação e limpa os campos.
-   */
+  /**
+ * Cancela o formulário de adição/editação e limpa os campos.
+ */
   cancelarFormulario() {
     this.unidadeForm.reset();
     this.showForm = false;
@@ -291,21 +296,23 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
   }
 
 
-  carregarInformacaoUnidade(codigo: bigint){
+  carregarInformacaoUnidade(codigo: bigint) {
     this.unidadeService.getUnidadeEspecifica(codigo).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         if (response) {
           this.unidadeForm.patchValue({
             codigo: response.codigo,
-            descricao:response.descricao,
-            abreviacao:response.abreviacao,
+            descricao: response.descricao,
+            simbolo: response.simbolo,
             status: response.status,
             empresa: response.empresa,
             versao: response.versao,
           });
-        }}, error: (error) => {
-          console.log(error);
-      }})
+        }
+      }, error: (error) => {
+        console.log(error);
+      }
+    })
   }
 
   /**
@@ -355,7 +362,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
     if (this.unidadeForm.valid) {
       const requestCreateUnidade: AdicionarUnidade = {
         descricao: this.unidadeForm.value.descricao as string,
-        abreviacao: this.unidadeForm.value.abreviacao as string,
+        simbolo: this.unidadeForm.value.simbolo as string,
       };
 
       this.unidadeService
@@ -413,7 +420,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
       const requestEditUnidade: EditarUnidade = {
         codigo: this.unidadeForm.value.codigo as bigint,
         descricao: this.unidadeForm.value.descricao as string,
-        abreviacao: this.unidadeForm.value.abreviacao as string
+        simbolo: this.unidadeForm.value.simbolo as string
       };
       console.log(requestEditUnidade)
       // Chamar o serviço para editar o usuário
@@ -458,12 +465,12 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
 
 
   /**
-   * Desativa um usuário com o código fornecido.
+   * Desativa uma unidade com o código fornecido.
    *
    * @param {bigint} codigo - Código do usuário a ser desativado.
    * @returns {void}
    */
-  desativarUsuario(codigo: bigint): void {
+  desativarUnidade(codigo: bigint): void {
     console.log('Alterar o Status!:', codigo);
     if (codigo) {
       this.unidadeService

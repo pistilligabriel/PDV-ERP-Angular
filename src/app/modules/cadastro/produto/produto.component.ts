@@ -10,14 +10,20 @@ import { Observable, Subject, takeUntil } from 'rxjs';
 import { Column } from 'src/app/models/interfaces/Column';
 import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
 import { ProdutoService } from 'src/app/services/cadastro/produto/produto.service';
+import { UnidadeMedida } from '../unidade-medida/page/unidade-medida.component';
+import { UnidadeMedidaService } from 'src/app/services/cadastro/unidade-medida/unidade-medida.service';
+import { DropDownOptions } from 'src/app/models/interfaces/product/DropDownOptions';
+import { getLocaleDateTimeFormat } from '@angular/common';
+import { Marca } from '../marca/page/marca.component';
+import { MarcaService } from 'src/app/services/cadastro/marca/marca.service';
 
 export interface Produto {
   codigo: bigint,
   descricao: string,
   observacao: string,
-  fabricante: string,
+  fabricante: number,
   modelo:string,
-  unidadeVenda?: string,
+  unidadeVenda?: number,
   precoCusto: number,
   estoque: number,
   precoVenda: number,
@@ -31,9 +37,9 @@ export interface Produto {
 export interface AdicionarProduto {
   descricao: string,
   observacao: string,
-  fabricante: string,
+  fabricante: number,
   modelo: string,
-  unidadeVenda: string,
+  unidadeVenda: number,
   precoCusto: number,
   estoque: number,
   precoVenda: number,
@@ -45,9 +51,9 @@ export interface EditarProduto {
   codigo: bigint,
   descricao: string,
   observacao: string,
-  fabricante: string,
+  fabricante: number,
   modelo: string,
-  unidadeVenda: string,
+  unidadeVenda: number,
   precoCusto: number,
   estoque: number,
   precoVenda: number,
@@ -80,48 +86,24 @@ export class ProdutoComponent implements OnInit, OnDestroy {
 
   public produtoSelecionado!: Produto[] | null;
 
-  unidadeMedidas = [
-    {
-      id: 1,
-      descricao: 'Unidade',
-      Sigla: 'UNID'
-    },
-    {
-      id: 2,
-      descricao: 'Caixa',
-      Sigla: 'CX'
-    },
-    {
-      id: 3,
-      descricao: 'Jogo',
-      Sigla: 'JOGO'
-    },
-    {
-      id: 4,
-      descricao: 'Litro',
-      Sigla: 'LT'
-    },
-    {
-      id: 5,
-      descricao: 'Pacote',
-      Sigla: 'PCT'
-    },
-    {
-      id: 6,
-      descricao: 'Peça',
-      Sigla: 'PC'
-    }
-  ]
+  public produto!: Produto;
 
+  unidadeMedidas!: DropDownOptions[];
 
-  unidadeMedidaSelecionada = null
+  unidadeMedidaSelecionada!: UnidadeMedida;
+
+  marca!: DropDownOptions[];
+
+  marcaSelecionada!: Marca;
 
   constructor(
     private produtoService: ProdutoService,
     private messageService: MessageService,
     private router: Router,
     private formBuilderProduto: FormBuilder,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private unidadeService: UnidadeMedidaService,
+    private marcaService: MarcaService
   ) { }
 
   valorPesquisa!: string;
@@ -152,9 +134,9 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     codigo: [null as bigint | null],
     descricao: ['', [Validators.required]],
     observacao: [''],
-    fabricante: [''],
+    fabricante: [null as number | null, [Validators.required]],
     modelo:[''],
-    unidadeVenda: [null as string | null, [Validators.required]],
+    unidadeVenda: [null as number | null, [Validators.required]],
     precoCusto: [null as number | null, [Validators.required]],
     estoque: [null as number | null, [Validators.required]],
     precoVenda: [null as number | null, [Validators.required]],
@@ -165,11 +147,6 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     versao: [{ value: null as Date | string | null, disabled: true }],
   });
 
-  consolelog() {
-    console.log(this.produtoForm.value)
-
-  }
-
 
   ngOnInit() {
     this.listarProdutos();
@@ -177,10 +154,48 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       { field: 'status', header: 'Status' },
       { field: 'descricao', header: 'Descrição' },
       { field: 'fabricante', header: 'Marca' },
-      { field: 'unidadeVenda', header: 'Unidade Venda' },
+      { field: 'modelo', header: 'Modelo' },
       { field: 'estoque', header: 'Quantidade Estoque' },
+      { field: 'unidadeVenda', header: 'Unidade Venda' },
     ];
     this.colunasSelecionadas = this.cols;
+
+   this.unidadeService.getAllUnidades().subscribe({
+    next: (unidades) => {
+      this.unidadeMedidas = unidades.map(u => ({
+        label: `${u.descricao} - (${u.simbolo})`,
+        value: u.codigo // ou u.codigo, dependendo do que você salva no produto
+      }));
+    },
+    error: (err) => {
+      this.unidadeMedidas = [];
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Erro ao carregar unidades de medida!',
+        life: 3000,
+      });
+    }
+  });
+
+ this.marcaService.getAllMarca().subscribe({
+    next: (marca) => {
+      this.marca = marca.map(m => ({
+        label: `${m.descricao}`,
+        value: m.codigo // ou u.codigo, dependendo do que você salva no produto
+      }));
+    },
+    error: (err) => {
+      this.marca = [];
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Erro ao carregar marcas!',
+        life: 3000,
+      });
+    }
+  });
+  
   }
 
   /**
@@ -277,6 +292,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
   * Exibe o formulário de adição de grupo.
   */
   onAddButtonClick() {
+    const formattedDate = format(new Date(), 'dd/MM/yyyy HH:mm:ss');
     this.showForm = true;
     this.produtoForm.setValue({
       codigo: null,
@@ -289,10 +305,10 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       estoque: null,
       precoVenda: null,
       margemLucro: null,
-      status: null,
+      status: 'ATIVO',
       empresa: 1,
       versao: null,
-      dataCadastro: null,
+      dataCadastro: formattedDate,
     });
 
     this.produtoForm.get('precoVenda')?.valueChanges.subscribe(() => {
@@ -465,9 +481,9 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       const requestCreateproduto: AdicionarProduto = {
         descricao: this.produtoForm.value.descricao as string,
         observacao: this.produtoForm.value.observacao as string,
-        fabricante: this.produtoForm.value.fabricante as string,
+        fabricante: this.produtoForm.value.fabricante as number,
         modelo:this.produtoForm.value.modelo as string,
-        unidadeVenda: this.produtoForm.value.unidadeVenda as string,
+        unidadeVenda: this.produtoForm.value.unidadeVenda as number,
         precoCusto: this.produtoForm.value.precoCusto as number,
         estoque: this.produtoForm.value.estoque as number,
         precoVenda: this.produtoForm.value.precoVenda as number,
@@ -528,9 +544,9 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         codigo: this.produtoForm.value.codigo as bigint,
         descricao: this.produtoForm.value.descricao as string,
         observacao: this.produtoForm.value.observacao as string,
-        fabricante: this.produtoForm.value.fabricante as string,
+        fabricante: this.produtoForm.value.fabricante as number,
         modelo:this.produtoForm.value.modelo as string,
-        unidadeVenda: this.produtoForm.value.unidadeVenda as string,
+        unidadeVenda: this.produtoForm.value.unidadeVenda as number,
         precoCusto: this.produtoForm.value.precoCusto as number,
         estoque: this.produtoForm.value.estoque as number,
         precoVenda: this.produtoForm.value.precoVenda as number,

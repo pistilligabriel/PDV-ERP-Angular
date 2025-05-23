@@ -15,7 +15,7 @@
   <div class="grid">
     <div class="col-12">
       <p-card header="Unidade Medida" styleClass="shadow-3 m-1 text-indigo-800">
-        <!--TABELA DE USUARIOS-->
+        <!--TABELA DE UNIDADE MEDIDAS-->
         <div *ngIf="!showForm" class="grid">
           <div class="col-12">
             <div class="flex justify-content-end"></div>
@@ -23,14 +23,14 @@
               #tabelaUnidadeMedida
               [columns]="colunasSelecionadas"
               [value]="unidadeDatas"
-              [(selection)]="unidadeSelected"
+              [(selection)]="unidade"
               (onRowSelect)="onRowSelect($event)"
-              selectionMode="multiple"
+              selectionMode="single"
               [rows]="5"
               [paginator]="true"
               [responsive]="true"
               [resizableColumns]="true"
-              columnResizeMode="expand"
+              columnResizeMode="fit"
               styleClass="p-datatable-gridlines"
               [tableStyle]="{ 'min-width': '50rem' }"
               [rowHover]="true"
@@ -40,7 +40,7 @@
                 'codigo',
                 'status',
                 'descricao',
-                'abreviacao'
+                'simbolo'
               ]"
               [exportHeader]="'customExportHeader'"
               dataKey="codigo"
@@ -152,7 +152,7 @@
                       <div
                         class="flex justify-content-between align-items-center"
                       >
-                        ID
+                        Código
                       </div>
                       <div
                         class="flex justify-content-between align-items-center"
@@ -290,8 +290,8 @@
                 </div>
 
                 <div class="p-float-label flex flex-column mr-4">
-                  <input pInputText type="text" formControlName="abreviacao" style="width: 500px;"/>
-                  <label for="float-label">Abreviação</label>
+                  <input pInputText type="text" formControlName="simbolo" style="width: 500px;"/>
+                  <label for="float-label">Símbolo</label>
                 </div>
               </div>
             </form>

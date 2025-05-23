@@ -32,8 +32,8 @@ constructor(
     return this.http.put<Array<UnidadeMedida>>(`${this.API_URL}/unidade-medida`,requestData,this.httpOptions)
   }
 
-  desativarUnidade(codigo:bigint):Observable<Array<UnidadeMedida>>{
-  return this.http.post<Array<UnidadeMedida>>(`${this.API_URL}/unidade-medida/desativar/${codigo}`, this.httpOptions);
+  desativarUnidade(codigo:bigint):Observable<UnidadeMedida>{
+  return this.http.post<UnidadeMedida>(`${this.API_URL}/unidade-medida/alterar-status/${codigo}`, this.httpOptions);
  }
 
  getAllUnidades():Observable<Array<UnidadeMedida>>{

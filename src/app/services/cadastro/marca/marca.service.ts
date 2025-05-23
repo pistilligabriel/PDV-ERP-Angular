@@ -31,8 +31,8 @@ constructor(
     return this.http.put<Array<Marca>>(`${this.API_URL}/fabricantes`,requestData,this.httpOptions)
   }
 
-  desativarMarca(codigo:bigint):Observable<Array<Marca>>{
-  return this.http.post<Array<Marca>>(`${this.API_URL}/fabricantes/desativar/${codigo}`, this.httpOptions);
+  desativarMarca(codigo:bigint):Observable<Marca>{
+  return this.http.post<Marca>(`${this.API_URL}/fabricantes/alterar-status/${codigo}`, this.httpOptions);
  }
 
  getAllMarca():Observable<Array<Marca>>{

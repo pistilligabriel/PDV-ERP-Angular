@@ -40,7 +40,7 @@
                 'codigo',
                 'status',
                 'descricao',
-                'abreviacao'
+                'simbolo'
               ]"
               [exportHeader]="'customExportHeader'"
               dataKey="codigo"
@@ -152,7 +152,7 @@
                       <div
                         class="flex justify-content-between align-items-center"
                       >
-                        ID
+                        Código
                       </div>
                       <div
                         class="flex justify-content-between align-items-center"
@@ -248,8 +248,8 @@
 
               <ng-template pTemplate="summary">
                 <div class="text-center">
-                  Total de {{ marcaDatas ? marcaDatas.length : 0 }} Marcas
-                  Cadastradas.
+                  Total de {{ marcaDatas ? marcaDatas.length : 0 }} Marca(s)
+                  Cadastrada(s).
                 </div>
               </ng-template>
 
@@ -284,7 +284,7 @@
                   </div>
                 </div>
 
-                <div class="p-float-label flex flex-column mr-4">
+                <div class="p-float-label flex flex-column mt-2 mr-4">
                   <input pInputText formControlName="descricao"  style="width: 500px;"/>
                   <label for="float-label">Descrição</label>
                 </div>

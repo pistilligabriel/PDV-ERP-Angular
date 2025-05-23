@@ -6,6 +6,7 @@ import * as FileSaver from 'file-saver';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
+import { Status } from 'src/app/models/enums/Status.enum';
 import { Column } from 'src/app/models/interfaces/Column';
 import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
 import { MarcaService } from 'src/app/services/cadastro/marca/marca.service';
@@ -15,7 +16,7 @@ export interface Marca {
   descricao:string;
   status: string;
   empresa: number;
-  versao: string;
+  versao: Date;
 }
 
 export interface AdicionarMarca {
@@ -33,7 +34,7 @@ export interface CarregarEditarMarca {
   descricao:string;
   status: string;
   empresa: number;
-  versao: string;
+  versao: Date;
 }
 
 
@@ -113,7 +114,7 @@ export class MarcaComponent implements OnInit, OnDestroy {
 
     this.cols = [
       { field: 'status', header: 'Status' },
-      {field:'descricao', header: 'Descricao'},
+      {field:'descricao', header: 'Descrição'},
   ];
 
   this.colunasSelecionadas = this.cols;
@@ -220,7 +221,7 @@ export class MarcaComponent implements OnInit, OnDestroy {
     this.marcaForm.setValue({
       codigo: null,
       descricao: null,
-      status: null,
+      status: 'ATIVO',
       empresa: 1,
       versao: null,
     });
@@ -229,7 +230,7 @@ export class MarcaComponent implements OnInit, OnDestroy {
 
 
   onEditButtonClick(marca: CarregarEditarMarca): void {
-    const formattedDate = format(new Date(marca.versao), 'dd/MM/yyyy HH:mm:ss');
+    //TODO: receber versao backend e formatar para exibição
 
     if (marca.status === 'DESATIVADO') {
       this.confirmationService.confirm({
@@ -243,7 +244,7 @@ export class MarcaComponent implements OnInit, OnDestroy {
         descricao: marca.descricao,
         status: marca.status,
         empresa: marca.empresa,
-        versao: formattedDate,
+        versao: marca.versao,
       });
 
       console.log(this.isEdicao());
