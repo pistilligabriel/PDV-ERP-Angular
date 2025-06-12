@@ -26,6 +26,8 @@ export interface Produto {
   unidadeVenda?: number,
   precoCusto: number,
   estoque: number,
+  quantidade:number,
+  desconto:number,
   precoVenda: number,
   margemLucro: number,
   status: string;

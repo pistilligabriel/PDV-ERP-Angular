@@ -1,268 +1,134 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { format } from 'date-fns';
-import * as FileSaver from 'file-saver';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { Table } from 'primeng/table';
-import { Subject } from 'rxjs';
-import { Column } from 'src/app/models/interfaces/Column';
-import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
+import { registerLocaleData } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import localePt from '@angular/common/locales/pt'
+import { ProdutoService } from 'src/app/services/cadastro/produto/produto.service';
+import { Produto } from '../cadastro/produto/produto.component';
+import { Clientes } from '../cadastro/cliente/page/cliente.component';
+import { ClienteService } from 'src/app/services/cadastro/cliente/cliente.service';
 
-export interface Venda {
-  CODIGO: bigint,
-  status: string,
-  versao: Date
-}
+registerLocaleData(localePt, 'pt-BR');
+
 
 @Component({
   selector: 'app-venda',
   templateUrl: './venda.component.html',
-  styleUrls: []
+  styleUrls: ['./venda.component.scss']
 })
-
-export class VendaComponent implements OnInit {
-
-  private readonly destroy$: Subject<void> = new Subject<void>();
-
-
-  @ViewChild('tabelaVenda') tabelaVenda: Table | undefined;
-
-  /**
-   * Flag para exibir ou ocultar o formulário de produto.
-   */
-  public showForm = false;
-
-  /**
-   * Lista de dados de produtos.
-   */
-  public vendaDatas: Array<Venda> = [];
-
-  public vendaSelecionada!: Venda [] | null;
-
- 
-
-
-
-  unidadeMedidaSelecionada = null
+export class VendaComponent implements OnInit{
+  produtos: Produto[] = [];
+  codigoProduto!: bigint | null;
+  quantidade: number = 1;
+  clientes!: Clientes[];
+  cliente: Clientes | null = null;
+  total: number = 0;
+  mostrarDialogProdutos: boolean = false;
+  mostrarDesconto: boolean = false;
+  descontoAplicado: number = 0; // NOVA VARIÁVEL
+  mostrarDialogClientes: boolean = false;
 
   constructor(
-    private messageService: MessageService,
-    private router: Router,
-    private formBuilderProduto: FormBuilder,
-    private confirmationService: ConfirmationService
-  ) { }
+    private produtoService: ProdutoService,
+    private clienteService: ClienteService,
+  ){}
 
-  valorPesquisa!: string;
 
-  /**
-   * Limpa a seleção da tabela.
-   *
-   * @public
-   * @memberof ProdutoComponent
-   * @param {Table} table - Instância da tabela a ser limpa.
-   * @returns {void}
-   */
-  clear(table: Table) {
-    this.valorPesquisa = ""
-    table.clear();
+  ngOnInit(): void {
+    this.clienteService.getAllCliente().subscribe(c => {
+      this.clientes = c;
+    })
+
+    this.produtoService.getAllProdutos().subscribe(produtos => {
+      this.catalogo = produtos;
+    })
+
+    this.total = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
   }
 
-  cols!: Column[];
+  // Simulação de banco de produtos
+  catalogo: Produto[] = [];
 
-  colunasSelecionadas!: Column[];
+  valorDesconto!: number | null;
 
-  exportColumns!: ExportColumn[];
+  adicionarProduto() {
+    if (!this.codigoProduto) return;
 
-  /**
-   * Formulário reativo para adicionar/editar grupos de usuários.
-   */
-  public produtoForm = this.formBuilderProduto.group({
-    CODIGO: [null as bigint | null],
-    descricao: ['', [Validators.required]],
-    observacao: [''],
-    fabricante: [''],
-    codigoOriginal:[''],
-    codigoBarras:[''],
-    unidadeVenda: [ null as string |  null , [Validators.required]],
-    precoCusto:[null as number | null, [Validators.required]],
-    estoque: [null as number | null, [Validators.required]],
-    precoVenda: [null as number | null, [Validators.required]],
-    margemLucro:[{ value: 0, disabled: true }],
-    status: [{ value: '', disabled: true }],
-    empresa: [{ value: 1, disabled: true }],
-    dataCadastro:[{ value: null as Date | string | null, disabled: true }],
-    versao: [{ value: null as Date | string | null, disabled: true }],
-  });
+    const produtoCatalogo = this.catalogo?.find(p => p.codigo === this.codigoProduto);
 
-  consolelog(){
-    console.log(this.produtoForm.value)
-
-  }
-
-
-  ngOnInit() {
-    
-    this.cols = [
-      { field: 'status', header: 'Status' },
-      { field: 'descricao', header: 'Descrição'},
-      { field: 'fabricante', header: 'Marca' },
-      { field: 'unidadeVenda', header: 'Unidade Venda' },
-      { field: 'estoque', header: 'Quantidade Estoque' },
-  ];
-  this.colunasSelecionadas = this.cols;
-  }
-
-   /**
-   * Aplica um filtro global na tabela de grupos de usuários.
-   *
-   * @param $event O evento que acionou a função.
-   * @param stringVal O valor da string para filtrar.
-   */
-   applyFilterGlobal($event: any, stringVal: any) {
-    this.tabelaVenda!.filterGlobal(($event.target as HTMLInputElement).value, stringVal);
-  }
-
-  /**
-   * Exporta os dados da tabela para um arquivo PDF.
-   */
-  exportPdf() {
-    import('jspdf').then((jsPDF) => {
-      import('jspdf-autotable').then((x) => {
-        const doc = new jsPDF.default('p', 'px', 'a4');
-        (doc as any).autoTable(this.exportColumns, this.vendaDatas);
-        doc.save('vendas.pdf');
-      });
-    });
-  }
-
-  /**
-   * Exporta os dados da tabela para um arquivo Excel.
-   */
-  exportExcel() {
-    import('xlsx').then((xlsx) => {
-      const worksheet = xlsx.utils.json_to_sheet(this.vendaDatas);
-      const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
-      const excelBuffer: any = xlsx.write(workbook, {
-        bookType: 'xlsx',
-        type: 'array',
-      });
-      this.saveAsExcelFile(excelBuffer, 'vendas');
-    });
-  }
-
-  saveAsExcelFile(buffer: any, fileName: string): void {
-    let EXCEL_TYPE =
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-    let EXCEL_EXTENSION = '.xlsx';
-    const data: Blob = new Blob([buffer], {
-      type: EXCEL_TYPE,
-    });
-    FileSaver.saveAs(
-      data,
-      fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION
-    );
-  }
-
-    /**
-   * Retorna a severidade com base no status fornecido.
-   *
-   * @param {string} status - Status a ser avaliado.
-   * @returns {string} - Severidade correspondente.
-   */
-  getSeverity(status: string) {
-    switch (status) {
-      case 'ATIVO':
-        return 'success';
-      case 'DESATIVADO':
-        return 'danger';
-      default:
-        return ''; // Add a default case that returns a default value
-    }
-  }
-
-   /**
-   * Manipulador de eventos para a seleção de uma linha na tabela.
-   *
-   * @param {*} event - Evento de seleção de linha.
-   * @returns {void}
-   */
-   onRowSelect(event: any) {
-    console.log('Row selected:', event.data);
-    this.vendaSelecionada = event.data;
-  }
-
-  /**
-   * Verifica se o formulário está em modo de edição.
-   *
-   * @returns {boolean} - Verdadeiro se estiver em modo de edição, falso caso contrário.
-   */
-  isEdicao(): boolean {
-    console.log('Editar venda:', this.produtoForm.value.CODIGO)
-    return !!this.produtoForm.value.CODIGO;
-  }
-
-   /**
-   * Manipulador de eventos para o botão de adição de grupo.
-   * Exibe o formulário de adição de grupo.
-   */
-   onAddButtonClick() {
-    this.showForm = true;
-    this.produtoForm.setValue({
-      CODIGO: null,
-      descricao: null,
-      observacao: null,
-      codigoOriginal: null,
-      codigoBarras: null,
-      fabricante: null,
-      unidadeVenda: null,
-      precoCusto: null,
-      estoque: null,
-      precoVenda: null,
-      margemLucro:null,
-      status: null,
-      empresa: 1,
-      versao: null,
-      dataCadastro: null,
-    });
-
-  }
-
-  verificarCusto(){
-    console.log(this.produtoForm.value.precoCusto)
-  }
-
-  
-
-
-
-
-  onEditButtonClick(venda: Venda): void {
-    const formattedDate = format(new Date(venda.versao), 'dd/MM/yyyy HH:mm:ss');
-
-
-    if (venda.status === 'DESATIVADO') {
-      this.confirmationService.confirm({
-        header: 'Aviso',
-        message: 'Não é permitido editar um usuário desativado.',
-      });
+    if (produtoCatalogo) {
+      const existente = this.produtos.find(p => p.codigo === produtoCatalogo.codigo);
+      if (existente) {
+        existente.quantidade += this.quantidade;
+      } else {
+        const novoProduto = { ...produtoCatalogo, quantidade: this.quantidade };
+        this.produtos.push(novoProduto);
+      }
+      this.codigoProduto = null;
+      this.quantidade = 1;
+      this.atualizarTotal();
     } else {
-      this.showForm = true;
+      alert('Produto não encontrado!');
     }
   }
 
-
-  onDisableButtonClick(venda: Venda): void {
-    this.produtoForm.patchValue({
-      CODIGO: venda.CODIGO,
-    });
-    //this.desativarProduto(produto.CODIGO as bigint);
+  aplicarDescontoItem(codigo: bigint, percentual: number) {
+    const produto = this.produtos.find(p => p.codigo === codigo);
+    if (produto) {
+      const desconto = produto.precoVenda * (percentual / 100);
+      produto.precoVenda = produto.precoVenda - desconto;
+      produto.desconto = percentual;
+      this.atualizarTotal();
+    }
   }
 
+  removerProduto(codigo: bigint) {
+    this.produtos = this.produtos.filter(p => p.codigo !== codigo);
+    this.atualizarTotal();
+  }
 
-  
+  atualizarTotal() {
+  const totalBruto = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
+  this.total = totalBruto - this.descontoAplicado;
+}
 
+  finalizarVenda() {
+    if (this.produtos.length === 0) {
+      alert('Nenhum produto na venda!');
+      return;
+    }
 
+    // Aqui você pode integrar com o backend para registrar a venda
+    console.log('Venda finalizada:', this.produtos, this.cliente);
+    alert('Venda finalizada com sucesso!');
+    this.produtos = [];
+    this.total = 0;
+  }
 
+  buscarProduto(){
+    this.mostrarDialogProdutos = true; // ABRE O DIALOG
+  }
 
+  selecionarProduto(produto: Produto) {
+    this.codigoProduto = produto.codigo;
+    this.mostrarDialogProdutos = false;
+  }
+
+  mostrarTelaDesconto(){
+  this.mostrarDesconto = true;
+}
+
+  aplicarDesconto(){
+  // Aplica o desconto ao confirmar
+  const totalBruto = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
+  this.descontoAplicado = this.valorDesconto ? totalBruto * (this.valorDesconto / 100) : 0;
+  this.mostrarDesconto = false;
+  this.atualizarTotal();
+}
+
+mostrarTelaCliente(){
+  this.mostrarDialogClientes = true;
+}
+
+ selecionarCliente(cliente: Clientes) {
+  this.cliente = cliente;
+}
 }

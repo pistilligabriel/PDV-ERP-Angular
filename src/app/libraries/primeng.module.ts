@@ -26,6 +26,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { MessagesModule } from 'primeng/messages';
 import { TabPanel, TabViewModule } from 'primeng/tabview';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { DialogModule } from 'primeng/dialog';
 
 
 
@@ -60,7 +61,8 @@ import { SelectButtonModule } from 'primeng/selectbutton';
     MultiSelectModule,
     MessagesModule,
     TabViewModule,
-    SelectButtonModule
+    SelectButtonModule,
+    DialogModule
   ],
   exports: [
     CardModule,
@@ -90,7 +92,8 @@ import { SelectButtonModule } from 'primeng/selectbutton';
     MultiSelectModule,
     MessagesModule,
     TabViewModule,
-    SelectButtonModule
+    SelectButtonModule,
+    DialogModule
   ]
 })
 export class PrimengModule { }

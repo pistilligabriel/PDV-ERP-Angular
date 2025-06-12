@@ -1,0 +1,89 @@
+.pdv-container {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  height: 100vh;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 0.5rem;
+  }
+}
+
+.pdv-actions {
+  display: flex;
+  flex-direction: column;
+  width: 220px;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  background-color: darkgray;
+
+  @media (max-width: 768px) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: center;
+    gap: 0.5rem;
+    order: 1;
+  }
+}
+
+.pdv-venda {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-right: 1rem;
+  padding-bottom: 110px;
+
+  @media (max-width: 768px) {
+    padding-right: 0;
+    order: 2;
+  }
+}
+
+.pdv-footer {
+  position: fixed;
+  bottom: 65px;
+  left: 200px;
+  right: 0;
+  padding: 0.5rem 1rem;
+  background-color: #f9f9f9;
+  border-top: 1px solid #ccc;
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  z-index: 99;
+  margin-left:36px;
+
+  @media (max-width: 768px) {
+    left: 0;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+}
+
+.pdv-pagamento {
+  position: fixed;
+  bottom: 0;
+  left: 200px;
+  right: 0;
+  padding: 0.75rem 1rem;
+  margin-left:36px;
+  background-color: #ffffff;
+  border-top: 1px solid #ccc;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  z-index: 100;
+
+  @media (max-width: 768px) {
+    left: 0;
+    flex-direction: column;
+    align-items: center;
+  }
+}
