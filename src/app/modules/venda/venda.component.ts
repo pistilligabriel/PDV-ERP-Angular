@@ -5,8 +5,35 @@ import { ProdutoService } from 'src/app/services/cadastro/produto/produto.servic
 import { Produto } from '../cadastro/produto/produto.component';
 import { Clientes } from '../cadastro/cliente/page/cliente.component';
 import { ClienteService } from 'src/app/services/cadastro/cliente/cliente.service';
+import { FormaPagamento } from 'src/app/models/enums/venda/FormaPagamento.enum';
+import { VendaService } from 'src/app/services/faturamento/venda/venda.service';
+import { MessageService } from 'primeng/api';
+import { Router } from '@angular/router';
+import { ItemDto } from 'src/app/models/dtos/Produto/ItemDto';
+
 
 registerLocaleData(localePt, 'pt-BR');
+
+export interface PedidoDto {
+  integrante: bigint;          // Objeto com os dados do cliente
+  desconto: number;
+  formaPagamento: FormaPagamento; // Pode ser um enum (ver abaixo)
+  parcelas: number;
+  total: number;
+  produtos: ItemDto[];             // Lista de produtos já convertidos
+}
+
+export interface ProdutoVenda {
+  codigo: bigint;
+  descricao: string;
+  observacao: string | null;
+  unidadeVenda: number | null; // alterado aqui
+  fabricante: number | null; // alterado aqui
+  modelo: string;
+  precoVenda: number;
+  estoque: number | null;
+  quantidade: number;
+}
 
 
 @Component({
@@ -14,22 +41,41 @@ registerLocaleData(localePt, 'pt-BR');
   templateUrl: './venda.component.html',
   styleUrls: ['./venda.component.scss']
 })
-export class VendaComponent implements OnInit{
-  produtos: Produto[] = [];
+export class VendaComponent implements OnInit {
+
+  produtos: ProdutoVenda[] = [];
+
   codigoProduto!: bigint | null;
+
   quantidade: number = 1;
+
   clientes!: Clientes[];
+
   cliente: Clientes | null = null;
+
   total: number = 0;
+
   mostrarDialogProdutos: boolean = false;
+
   mostrarDesconto: boolean = false;
+
   descontoAplicado: number = 0; // NOVA VARIÁVEL
+
   mostrarDialogClientes: boolean = false;
+
+  tipoFinalizacaoVenda!: FormaPagamento | null;
+
+  mostrarDialogCartaoPrazo: boolean = false;
+
+  parcelas!: number | null;
 
   constructor(
     private produtoService: ProdutoService,
     private clienteService: ClienteService,
-  ){}
+    private pedidoService: VendaService,
+    private messageService: MessageService,
+    private router: Router
+  ) { }
 
 
   ngOnInit(): void {
@@ -37,7 +83,7 @@ export class VendaComponent implements OnInit{
       this.clientes = c;
     })
 
-    this.produtoService.getAllProdutos().subscribe(produtos => {
+    this.produtoService.getAllProdutosVenda().subscribe(produtos => {
       this.catalogo = produtos;
     })
 
@@ -45,7 +91,7 @@ export class VendaComponent implements OnInit{
   }
 
   // Simulação de banco de produtos
-  catalogo: Produto[] = [];
+  catalogo: ProdutoVenda[] = [];
 
   valorDesconto!: number | null;
 
@@ -55,12 +101,12 @@ export class VendaComponent implements OnInit{
     const produtoCatalogo = this.catalogo?.find(p => p.codigo === this.codigoProduto);
 
     if (produtoCatalogo) {
-      const existente = this.produtos.find(p => p.codigo === produtoCatalogo.codigo);
+      const existente = this.produtos.find(p => p.descricao === produtoCatalogo.descricao);
       if (existente) {
         existente.quantidade += this.quantidade;
       } else {
-        const novoProduto = { ...produtoCatalogo, quantidade: this.quantidade };
-        this.produtos.push(novoProduto);
+        const produtoConvertido = this.converterProdutoParaDto(produtoCatalogo);
+        this.produtos.push(produtoConvertido);
       }
       this.codigoProduto = null;
       this.quantidade = 1;
@@ -70,65 +116,150 @@ export class VendaComponent implements OnInit{
     }
   }
 
-  aplicarDescontoItem(codigo: bigint, percentual: number) {
-    const produto = this.produtos.find(p => p.codigo === codigo);
-    if (produto) {
-      const desconto = produto.precoVenda * (percentual / 100);
-      produto.precoVenda = produto.precoVenda - desconto;
-      produto.desconto = percentual;
-      this.atualizarTotal();
-    }
-  }
-
   removerProduto(codigo: bigint) {
     this.produtos = this.produtos.filter(p => p.codigo !== codigo);
     this.atualizarTotal();
   }
 
   atualizarTotal() {
-  const totalBruto = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
-  this.total = totalBruto - this.descontoAplicado;
-}
+    const totalBruto = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
+    this.total = totalBruto - this.descontoAplicado;
+  }
+
+  dinheiro() {
+    this.tipoFinalizacaoVenda = FormaPagamento.DINHEIRO,
+      this.finalizarVenda();
+  }
+
+  cartaoCreditoAVista() {
+    this.tipoFinalizacaoVenda = FormaPagamento.CARTAO_CREDITO_A_VISTA,
+      this.finalizarVenda();
+  }
+
+
+  cartaoAPrazo() {
+    this.tipoFinalizacaoVenda = FormaPagamento.CARTAO_PARCELADO,
+      this.mostrarDialogCartaoPrazo = false;
+    setTimeout(() => {
+      this.finalizarVenda();
+    }, 500);
+  }
 
   finalizarVenda() {
     if (this.produtos.length === 0) {
       alert('Nenhum produto na venda!');
       return;
     }
+  
+    
+    const produtosCorrigidos: ProdutoVenda[] = this.produtos.map(produto => ({
+      codigo:produto.codigo,
+      descricao: produto.descricao,
+      observacao: produto.observacao ?? null,
+      unidadeVenda: produto.unidadeVenda ?? null,
+      fabricante: produto.fabricante ?? null,
+      modelo: produto.modelo ?? '',
+      precoVenda: produto.precoVenda ?? null,
+      estoque: produto.estoque ?? null,
+      quantidade: produto.quantidade ?? 1,
+    }));
+    
+    console.log('Venda finalizada:', produtosCorrigidos, this.cliente, this.tipoFinalizacaoVenda, this.parcelas);
 
-    // Aqui você pode integrar com o backend para registrar a venda
-    console.log('Venda finalizada:', this.produtos, this.cliente);
+    const pedido: PedidoDto = {
+      integrante: this.cliente?.codigo as bigint,
+      produtos: produtosCorrigidos,
+      formaPagamento: this.tipoFinalizacaoVenda as FormaPagamento,
+      parcelas: this.parcelas as number,
+      desconto: this.descontoAplicado as number,
+      total: this.total,
+    };
+    this.pedidoService.criarPedido(pedido).subscribe(response => {
+      console.log('Pedido criado com sucesso:', response);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Sucesso',
+        detail: 'Pedido criado com sucesso!'
+      });
+      this.router.navigate(['/home']);
+      this.reset();
+    }, error => {
+      console.error('Erro ao criar pedido:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Erro ao criar pedido!'
+      });
+      this.reset();
+    });
+  
     alert('Venda finalizada com sucesso!');
-    this.produtos = [];
-    this.total = 0;
   }
 
-  buscarProduto(){
+  buscarProduto() {
     this.mostrarDialogProdutos = true; // ABRE O DIALOG
   }
 
   selecionarProduto(produto: Produto) {
     this.codigoProduto = produto.codigo;
     this.mostrarDialogProdutos = false;
+    this.adicionarProduto();
   }
 
-  mostrarTelaDesconto(){
-  this.mostrarDesconto = true;
+  mostrarTelaDesconto() {
+    this.mostrarDesconto = true;
+  }
+
+
+  mostrarTelaCartaoPrazo() {
+    this.mostrarDialogCartaoPrazo = true;
+  }
+
+
+  aplicarDesconto() {
+    // Aplica o desconto ao confirmar
+    const totalBruto = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
+    this.descontoAplicado = this.valorDesconto ? totalBruto * (this.valorDesconto / 100) : 0;
+    this.mostrarDesconto = false;
+    this.atualizarTotal();
+  }
+
+  mostrarTelaCliente() {
+    this.mostrarDialogClientes = true;
+  }
+
+  selecionarCliente(cliente: Clientes) {
+    this.cliente = cliente;
+    console.log(cliente);
+    this.mostrarDialogClientes = false;
+  }
+
+  cartaoDebito() {
+    this.tipoFinalizacaoVenda = FormaPagamento.CARTAO_DEBITO,
+      this.finalizarVenda();
+  }
+
+  reset() {
+    this.produtos = [];
+    this.total = 0;
+    this.descontoAplicado = 0;
+    this.cliente = null;
+    this.tipoFinalizacaoVenda = null;
+    this.parcelas = null;
+  }
+
+  converterProdutoParaDto(produto: any): ProdutoVenda {
+    return {
+      descricao: produto.descricao ?? null,
+      precoVenda:  produto.precoVenda ?? null,
+      unidadeVenda: produto.unidadeVenda?.codigo ?? null,
+      fabricante: produto.fabricante?.codigo ?? null,
+      quantidade: this.quantidade,
+      modelo: produto.modelo ?? null,
+      codigo: produto.codigo,
+      estoque:produto.estoque,
+      observacao:produto.observacao
+    };
+  }
 }
 
-  aplicarDesconto(){
-  // Aplica o desconto ao confirmar
-  const totalBruto = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
-  this.descontoAplicado = this.valorDesconto ? totalBruto * (this.valorDesconto / 100) : 0;
-  this.mostrarDesconto = false;
-  this.atualizarTotal();
-}
-
-mostrarTelaCliente(){
-  this.mostrarDialogClientes = true;
-}
-
- selecionarCliente(cliente: Clientes) {
-  this.cliente = cliente;
-}
-}

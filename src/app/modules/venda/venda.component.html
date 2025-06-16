@@ -67,7 +67,7 @@
     <p-dialog header="Desconto" [(visible)]="mostrarDesconto" [modal]="true">
       <div class="p-float-label flex flex-column mr-4 mt-4 mb-4">
         <input pInputText [(ngModel)]="valorDesconto" />
-        <label for="float-label">Desconto</label>
+        <label for="float-label">Desconto(%)</label>
       </div>
       <p-button class="mr-2" (onClick)="aplicarDesconto()" type="submit" label="Confirmar"></p-button>
     </p-dialog>
@@ -93,12 +93,19 @@
         </ng-template>
       </p-table>
     </p-dialog>
+    <p-dialog header="Parcelamento" [(visible)]="mostrarDialogCartaoPrazo" [modal]="true">
+      <div class="p-float-label flex flex-column mr-4 mt-4 mb-4">
+        <input pInputText [(ngModel)]="parcelas" />
+        <label for="float-label">Parcelas</label>
+      </div>
+      <p-button class="mr-2" (onClick)="cartaoAPrazo()" type="submit" label="Confirmar"></p-button>
+    </p-dialog>
 
 
     <!-- Rodapé -->
     <div class="pdv-footer">
       <div class="info">
-        CPF: {{ cliente?.documento || "Não identificado" }} | Cliente: {{cliente?.nome || "Cliente não identificado"}}
+        {{cliente?.tipoDocumento || "CPF"}}: {{ cliente?.documento || "Não identificado" }} | Cliente: {{cliente?.nome || "Cliente não identificado"}}
       </div>
       <div>
         Desconto aplicado: R$ {{ descontoAplicado | number: '1.2-2' }}
@@ -110,11 +117,11 @@
 
     <!-- Botões de Pagamento -->
     <div class="pdv-pagamento">
-      <button pButton label="✔ Finalizar Venda" class="p-button-success" (click)="finalizarVenda()"></button>
-      <button pButton label="💵 Dinheiro c/ Troco" class="p-button-secondary"></button>
-      <button pButton label="🪙 Dinheiro s/ Troco" class="p-button-secondary"></button>
-      <button pButton label="💳 TEF Crédito" class="p-button-secondary"></button>
-      <button pButton label="🏧 TEF Débito" class="p-button-secondary"></button>
+      <button pButton label="💵 Pix" class="p-button-secondary" (click)="mostrarTelaCartaoPrazo()"></button>
+      <button pButton label="💵 Dinheiro" class="p-button-secondary" (click)="dinheiro()"></button>
+      <button pButton label="💳 Cartão Débito" class="p-button-secondary" (click)="cartaoDebito()"></button>
+      <button pButton label="💳 Cartão Crédito à vista" class="p-button-secondary" (click)="cartaoCreditoAVista()"></button>
+      <button pButton label="💳 Cartão Crédito parcelado" class="p-button-secondary" (click)="mostrarTelaCartaoPrazo()"></button>
     </div>
   </div>
 </div>

@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { CookieService } from 'ngx-cookie-service';
 import { Observable } from 'rxjs';
 import { AdicionarProduto, EditarProduto, Produto } from 'src/app/modules/cadastro/produto/produto.component';
+import { ProdutoVenda } from 'src/app/modules/venda/venda.component';
 import { environment } from 'src/environment/environment';
 
 @Injectable({
@@ -26,6 +27,10 @@ constructor(
 
  getAllProdutos():Observable<Array<Produto>>{
   return this.http.get<Array<Produto>>(`${this.API_URL}/produtos`, this.httpOptions);
+ }
+
+ getAllProdutosVenda():Observable<Array<ProdutoVenda>>{
+  return this.http.get<Array<ProdutoVenda>>(`${this.API_URL}/produtos`, this.httpOptions);
  }
 
  getProdutoEspecifico(codigo: bigint):Observable<Produto>{
