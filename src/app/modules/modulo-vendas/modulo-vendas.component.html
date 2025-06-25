@@ -1,0 +1,248 @@
+<div class="card flex justify-content-center gap-2">
+  <p-toast></p-toast>
+  <p-confirmDialog
+    header="Título do Diálogo"
+    icon="pi pi-exclamation-triangle"
+    [acceptLabel]="'OK'"
+    [rejectVisible]="false"
+    [closable]="false"
+  ></p-confirmDialog>
+</div>
+
+<app-toolbar-navigation></app-toolbar-navigation>
+
+<div>
+  <div class="grid">
+    <div class="col-12">
+      <p-card header="Vendas" styleClass="shadow-3 m-1 text-indigo-800">
+        <!--TABELA DE VENDAS-->
+        <div *ngIf="!showForm" class="grid">
+          <div class="col-12">
+            <div class="flex justify-content-end"></div>
+            <p-table
+              #tabelaVenda
+              [columns]="colunasSelecionadas"
+              [value]="vendasDatas"
+              [(selection)]="vendaSelecionada"
+              (onRowSelect)="onRowSelect($event)"
+              selectionMode="single"
+              [rows]="5"
+              [paginator]="true"
+              [responsive]="true"
+              [resizableColumns]="true"
+              columnResizeMode="fit"
+              styleClass="p-datatable-gridlines"
+              [tableStyle]="{ 'min-width': '50rem' }"
+              [rowHover]="true"
+              [showCurrentPageReport]="true"
+              [rowsPerPageOptions]="[5, 10, 25, 50, 100]"
+              [globalFilterFields]="[
+                'codigo',
+                'status',
+                'dataEmissao',
+                'cliente',
+                'valorTotal',
+                'formaPagamento',
+              ]"
+              [exportHeader]="'customExportHeader'"
+              dataKey="codigo"
+              currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
+              [filterDelay]="0"
+            >
+              <ng-template pTemplate="caption">
+                <div class="flex">
+                  <div class="mr-5">
+                    <button
+                      type="button"
+                      class="mr-2"
+                      pButton
+                      pRipple
+                      icon="pi pi-plus"
+                      pTooltip="Nova Venda"
+                      (click)="onAddButtonClick()"
+                    >
+                      Nova Venda
+                    </button>
+                  </div>
+
+                  <div class="flex justify-content-center mr-5">
+                    <button
+                      type="button"
+                      pButton
+                      pRipple
+                      icon="pi pi-file"
+                      (click)="tabelaVenda?.exportCSV()"
+                      class="mr-2"
+                      pTooltip="CSV - Exportar os dados da tabela com formato csv."
+                      tooltipPosition="bottom"
+                    ></button>
+                    <button
+                      type="button"
+                      pButton
+                      pRipple
+                      icon="pi pi-file-excel"
+                      (click)="exportExcel()"
+                      class="p-button-success mr-2"
+                      pTooltip="XLS - Exportar os dados da tabela com formato xls."
+                      tooltipPosition="bottom"
+                    ></button>
+                    <button
+                      type="button"
+                      pButton
+                      pRipple
+                      icon="pi pi-file-pdf"
+                      (click)="exportPdf()"
+                      class="p-button-warning mr-2"
+                      pTooltip="PDF - Exportar os dados da tabela com formato pdf."
+                      tooltipPosition="bottom"
+                    ></button>
+                  </div>
+
+                  <p-multiSelect
+                    pTooltip="Desmarque as colunas que serão ocultadas"
+                    [options]="cols"
+                    [(ngModel)]="colunasSelecionadas"
+                    optionLabel="header"
+                    selectedItemsLabel="Ocultar Colunas"
+                    [style]="{ 'min-width': '200px' }"
+                    placeholder="Selecione as Colunas"
+                  >
+                  </p-multiSelect>
+
+                  <span class="p-input-icon-left ml-auto mr-2">
+                    <i class="pi pi-search"></i>
+                    <input
+                      pInputText
+                      type="text"
+                      [(ngModel)]="valorPesquisa"
+                      (input)="applyFilterGlobal($event, 'contains')"
+                      placeholder="Pesquisar"
+                    />
+                  </span>
+                  <button
+                    pButton
+                    label="Limpar"
+                    class="p-button-outlined"
+                    icon="pi pi-filter-slash"
+                    (click)="clear(tabelaVenda)"
+                  ></button>
+                </div>
+              </ng-template>
+
+              <ng-template pTemplate="header" let-columns>
+                <tr>
+                  <th style="width: 3rem">Editar/Desativar</th>
+                  <!-- <th style="width: 4rem">
+                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                  </th> -->
+                  <th
+                    pResizableColumn
+                    pSortableColumn="codigo"
+                    style="width: 3rem"
+                  >
+                    <div
+                      class="flex justify-content-between align-items-center"
+                    >
+                      <div
+                        class="flex justify-content-between align-items-center"
+                      >
+                        Código
+                      </div>
+                      <div
+                        class="flex justify-content-between align-items-center"
+                      >
+                        <p-sortIcon field="codigo"></p-sortIcon>
+                        <p-columnFilter
+                          type="text"
+                          field="codigo"
+                          display="menu"
+                          matchMode="contains"
+                          [showMatchModes]="true"
+                          [showOperator]="false"
+                          [showAddButton]="true"
+                        ></p-columnFilter>
+                      </div>
+                    </div>
+                  </th>
+                  <th
+                    *ngFor="let col of columns"
+                    pResizableColumn
+                    [pSortableColumn]="col.field"
+                  >
+                    <div
+                      class="flex justify-content-between align-items-center"
+                    >
+                      <div
+                        class="flex justify-content-between align-items-center"
+                      >
+                        {{ col.header }}
+                      </div>
+                      <div
+                        class="flex justify-content-between align-items-center"
+                      >
+                        <p-sortIcon field="{{ col.field }}"></p-sortIcon>
+                        <p-columnFilter
+                          type="text"
+                          [field]="col.field"
+                          display="menu"
+                          matchMode="contains"
+                          [showMatchModes]="true"
+                          [showOperator]="false"
+                          [showAddButton]="true"
+                        ></p-columnFilter>
+                      </div>
+                    </div>
+                  </th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-venda let-columns="columns">
+                <tr>
+                  <td>
+                    <div
+                      class="flex justify-content-center gap-2 align-content-center align-items-center"
+                    >
+                      <button
+                        pButton
+                        pRipple
+                        class="p-button-rounded p-button-text p-button-danger"
+                        icon="pi pi-eye"
+                        pTooltip="Visualizar Venda"
+                        
+                      ></button>
+                    </div>
+                  </td>
+                  <td>{{ venda.codigo }}</td>
+                  <ng-container >
+                    <td> {{ venda?.pedidoDto?.status }} </td>
+                    <td> {{ venda?.pedidoDto?.dataEmissao }} </td>
+                    <td> {{ venda?.pedidoDto?.integrante?.nome }} </td>
+                    <td> R${{ venda?.pedidoDto?.total | number: '1.2-2' }} </td>
+                    <!-- <td> R${{ venda?.pedidoDto?.lucro | number: '1.2-2' }} </td> -->
+                    <ng-template #statusColumn>
+                      <td>
+                        <p-tag
+                          [value]="venda.status"
+                          [severity]="getSeverity(venda.status)"
+                        ></p-tag>
+                      </td>
+                    </ng-template>
+                  </ng-container>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="summary">
+                <div class="text-center">
+                  Total de {{ vendasDatas ? vendasDatas.length : 0 }} Vendas
+                  Cadastradas.
+                </div>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="8">Nenhum informação foi encontrada.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>

@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { CookieService } from "ngx-cookie-service";
 import { Observable } from "rxjs";
+import { ResponseModuloVendaDto } from "src/app/models/dtos/ModuloVenda/ResponseModuloVendaDto";
 import { FormaPagamento } from "src/app/models/enums/venda/FormaPagamento.enum";
 import { Clientes } from "src/app/modules/cadastro/cliente/page/cliente.component";
 import { Produto } from "src/app/modules/cadastro/produto/produto.component";
@@ -28,5 +29,9 @@ private API_URL = environment.apiUrl;
 
     criarPedido(requestVenda: PedidoDto):Observable<Array<PedidoDto>>{
         return this.http.post<Array<PedidoDto>>(`${this.API_URL}/pedidos`, requestVenda, this.httpOptions);
+    }
+
+    getAllVendas(): Observable<Array<ResponseModuloVendaDto>> {
+        return this.http.get<Array<ResponseModuloVendaDto>>(`${this.API_URL}/pedidos`, this.httpOptions);
     }
 }

@@ -4,18 +4,11 @@
     <button pButton label="🔍 Buscar Produto" class="p-button-primary p-mb-2" (click)="buscarProduto()"></button>
     <button pButton label="👤 Cliente" class="p-button-primary p-mb-2" (click)="mostrarTelaCliente()"></button>
     <button pButton label="% Desconto Total" class="p-button-primary p-mb-2" (click)="mostrarTelaDesconto()"></button>
-    <button pButton label="📄 Salvar" class="p-button-primary p-mb-2"></button>
-    <button pButton label="❌ Cancelar Item" class="p-button-primary p-mb-2"></button>
+    <button pButton label="❌ Cancelar Venda" class="p-button-primary p-mb-2" (click)="cancelarVenda()"></button>
   </div>
 
   <!-- Coluna Direita - Venda -->
   <div class="pdv-venda">
-    <!-- Entrada de Produto -->
-    <div class="p-inputgroup p-mb-3">
-      <input type="text" pInputText placeholder="Código do Produto" [(ngModel)]="codigoProduto"
-        (keyup.enter)="adicionarProduto()" />
-      <button pButton icon="pi pi-plus" label="Adicionar" (click)="adicionarProduto()"></button>
-    </div>
 
     <!-- Tabela de Produtos -->
     <p-table [value]="produtos" [scrollable]="true" scrollHeight="300px">
@@ -24,7 +17,8 @@
           <th>Cód.</th>
           <th>Descrição</th>
           <th>Quant.</th>
-          <th>Valor</th>
+          <th>Unitário</th>
+          <th>Total</th>
           <th>Ações</th>
         </tr>
       </ng-template>
@@ -34,6 +28,7 @@
           <td>{{ produto.descricao }}</td>
           <td>{{ produto.quantidade }}</td>
           <td>R$ {{ produto.precoVenda | number: '1.2-2' }}</td>
+          <td>R$ {{ (produto.precoVenda*produto.quantidade) | number: '1.2-2' }}</td>
           <td>
             <button pButton icon="pi pi-times" class="p-button-danger p-button-sm"
               (click)="removerProduto(produto.codigo)"></button>
@@ -48,7 +43,8 @@
           <tr>
             <th>Código</th>
             <th>Descrição</th>
-            <th>Preço</th>
+            <th>Estoque</th>
+            <th>Unitário</th>
             <th>Ação</th>
           </tr>
         </ng-template>
@@ -56,6 +52,7 @@
           <tr>
             <td>{{ produto.codigo }}</td>
             <td>{{ produto.descricao }}</td>
+            <td>{{ produto.estoque }}</td>
             <td>R$ {{ produto.precoVenda | number: '1.2-2' }}</td>
             <td>
               <button pButton type="button" label="Selecionar" (click)="selecionarProduto(produto)"></button>
@@ -100,6 +97,13 @@
       </div>
       <p-button class="mr-2" (onClick)="cartaoAPrazo()" type="submit" label="Confirmar"></p-button>
     </p-dialog>
+    <p-dialog header="Quantidade" [(visible)]="mostrarDialogQuantidade" [modal]="true">
+      <div class="p-float-label flex flex-column mr-4 mt-4 mb-4">
+        <input pInputText type="number" [(ngModel)]="quantidade" />
+        <label for="float-label">Quantidade</label>
+      </div>
+      <p-button class="mr-2" (onClick)="quantidadeItem()" type="submit" label="Confirmar"></p-button>
+    </p-dialog>
 
 
     <!-- Rodapé -->
@@ -117,7 +121,7 @@
 
     <!-- Botões de Pagamento -->
     <div class="pdv-pagamento">
-      <button pButton label="💵 Pix" class="p-button-secondary" (click)="mostrarTelaCartaoPrazo()"></button>
+      <button pButton label="💵 Pix" class="p-button-secondary" (click)="pix()"></button>
       <button pButton label="💵 Dinheiro" class="p-button-secondary" (click)="dinheiro()"></button>
       <button pButton label="💳 Cartão Débito" class="p-button-secondary" (click)="cartaoDebito()"></button>
       <button pButton label="💳 Cartão Crédito à vista" class="p-button-secondary" (click)="cartaoCreditoAVista()"></button>

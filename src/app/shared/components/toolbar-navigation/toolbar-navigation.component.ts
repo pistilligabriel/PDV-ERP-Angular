@@ -10,6 +10,7 @@ import { DialogService } from 'primeng/dynamicdialog';
   styleUrls: []
 })
 export class ToolbarNavigationComponent implements OnInit {
+
   items: MenuItem[] | undefined;
 
   constructor(
@@ -62,7 +63,7 @@ export class ToolbarNavigationComponent implements OnInit {
           {
             label: 'Venda',
             icon: 'pi pi-fw pi-cart-plus',
-            routerLink: ['/faturamento/venda'],
+            routerLink: ['/faturamento/modulo-vendas'],
           },
           {
             label: 'Nota Fiscal',
@@ -127,6 +128,13 @@ export class ToolbarNavigationComponent implements OnInit {
     ];
   }
 
+  venda() {
+    if (this.cookie.check('token')) {
+      void this.router.navigate(['/faturamento/venda']);
+    } else {
+      void this.router.navigate(['/login']);
+    }
+}
 
   handleLogout(): void {
     this.cookie.delete('token');

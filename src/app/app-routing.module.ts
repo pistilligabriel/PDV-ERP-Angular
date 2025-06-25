@@ -65,7 +65,13 @@ const routes: Routes = [
     path:'faturamento/venda',
     loadChildren: () => import('./modules/venda/venda.module').then((m) => m.VendaModule)
   },
-
+  {
+    path: 'faturamento/modulo-vendas',
+    loadChildren: () =>
+      import('./modules/modulo-vendas/modulo-vendas.module').then(
+        (m) => m.ModuloVendasModule
+      ),
+  },
   { path: '**', component: PageNotFoundComponent },
 ];
 

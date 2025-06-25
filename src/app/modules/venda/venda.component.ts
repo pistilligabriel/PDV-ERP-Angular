@@ -10,17 +10,22 @@ import { VendaService } from 'src/app/services/faturamento/venda/venda.service';
 import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { ItemDto } from 'src/app/models/dtos/Produto/ItemDto';
+import { Status } from 'src/app/models/enums/Status.enum';
 
 
 registerLocaleData(localePt, 'pt-BR');
 
 export interface PedidoDto {
-  integrante: bigint;          // Objeto com os dados do cliente
+  integrante: Clientes;
   desconto: number;
-  formaPagamento: FormaPagamento; // Pode ser um enum (ver abaixo)
+  status:Status;
+  formaPagamento: FormaPagamento;
   parcelas: number;
+  porcentagemDesconto?: number;
   total: number;
-  produtos: ItemDto[];             // Lista de produtos já convertidos
+  // lucro: number;
+  totalSemDesconto?: number;
+  produtos: ItemDto[];
 }
 
 export interface ProdutoVenda {
@@ -43,6 +48,7 @@ export interface ProdutoVenda {
 })
 export class VendaComponent implements OnInit {
 
+
   produtos: ProdutoVenda[] = [];
 
   codigoProduto!: bigint | null;
@@ -55,11 +61,15 @@ export class VendaComponent implements OnInit {
 
   total: number = 0;
 
+  totalSemDesconto: number = 0;
+
+  porcentagemDesconto: number = 0;
+
   mostrarDialogProdutos: boolean = false;
 
   mostrarDesconto: boolean = false;
 
-  descontoAplicado: number = 0; // NOVA VARIÁVEL
+  descontoAplicado: number = 0;
 
   mostrarDialogClientes: boolean = false;
 
@@ -68,6 +78,8 @@ export class VendaComponent implements OnInit {
   mostrarDialogCartaoPrazo: boolean = false;
 
   parcelas!: number | null;
+
+  mostrarDialogQuantidade: boolean = false;
 
   constructor(
     private produtoService: ProdutoService,
@@ -88,6 +100,8 @@ export class VendaComponent implements OnInit {
     })
 
     this.total = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
+
+    console.log(this.catalogo)
   }
 
   // Simulação de banco de produtos
@@ -103,10 +117,20 @@ export class VendaComponent implements OnInit {
     if (produtoCatalogo) {
       const existente = this.produtos.find(p => p.descricao === produtoCatalogo.descricao);
       if (existente) {
-        existente.quantidade += this.quantidade;
+        const novaQuantidade = existente.quantidade + this.quantidade;
+        if (produtoCatalogo.estoque !== null && novaQuantidade > produtoCatalogo.estoque) {
+          alert('Quantidade solicitada maior que o estoque disponível!');
+          return;
+        }
+        existente.quantidade = novaQuantidade;
       } else {
         const produtoConvertido = this.converterProdutoParaDto(produtoCatalogo);
-        this.produtos.push(produtoConvertido);
+        if (produtoConvertido.estoque !== null && produtoConvertido.estoque < this.quantidade) {
+          alert('Quantidade solicitada maior que o estoque disponível!');
+          return;
+        } else {
+          this.produtos.push(produtoConvertido);
+        }
       }
       this.codigoProduto = null;
       this.quantidade = 1;
@@ -124,11 +148,17 @@ export class VendaComponent implements OnInit {
   atualizarTotal() {
     const totalBruto = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
     this.total = totalBruto - this.descontoAplicado;
+    this.totalSemDesconto = totalBruto; //Atualiza o total sem desconto
   }
 
   dinheiro() {
-    this.tipoFinalizacaoVenda = FormaPagamento.DINHEIRO,
-      this.finalizarVenda();
+    this.tipoFinalizacaoVenda = FormaPagamento.DINHEIRO;
+    this.finalizarVenda();
+  }
+
+  pix() {
+    this.tipoFinalizacaoVenda = FormaPagamento.PIX;
+    this.finalizarVenda();
   }
 
   cartaoCreditoAVista() {
@@ -150,10 +180,13 @@ export class VendaComponent implements OnInit {
       alert('Nenhum produto na venda!');
       return;
     }
-  
-    
+    if (!this.cliente) {
+      alert('Selecione um cliente para finalizar a venda!');
+      return;
+    }
+
     const produtosCorrigidos: ProdutoVenda[] = this.produtos.map(produto => ({
-      codigo:produto.codigo,
+      codigo: produto.codigo,
       descricao: produto.descricao,
       observacao: produto.observacao ?? null,
       unidadeVenda: produto.unidadeVenda ?? null,
@@ -163,16 +196,20 @@ export class VendaComponent implements OnInit {
       estoque: produto.estoque ?? null,
       quantidade: produto.quantidade ?? 1,
     }));
-    
+
     console.log('Venda finalizada:', produtosCorrigidos, this.cliente, this.tipoFinalizacaoVenda, this.parcelas);
 
     const pedido: PedidoDto = {
-      integrante: this.cliente?.codigo as bigint,
+      integrante: this.cliente as Clientes,
       produtos: produtosCorrigidos,
+      status: Status.NORMAL,
       formaPagamento: this.tipoFinalizacaoVenda as FormaPagamento,
+      porcentagemDesconto: this.porcentagemDesconto,
       parcelas: this.parcelas as number,
       desconto: this.descontoAplicado as number,
       total: this.total,
+      // lucro: produtosCorrigidos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0) - this.total,
+      totalSemDesconto: this.totalSemDesconto // Inclui o total sem desconto
     };
     this.pedidoService.criarPedido(pedido).subscribe(response => {
       console.log('Pedido criado com sucesso:', response);
@@ -192,7 +229,7 @@ export class VendaComponent implements OnInit {
       });
       this.reset();
     });
-  
+
     alert('Venda finalizada com sucesso!');
   }
 
@@ -203,7 +240,13 @@ export class VendaComponent implements OnInit {
   selecionarProduto(produto: Produto) {
     this.codigoProduto = produto.codigo;
     this.mostrarDialogProdutos = false;
+    this.mostrarDialogQuantidade = true;
+  }
+
+  quantidadeItem() {
     this.adicionarProduto();
+    this.mostrarDialogQuantidade = false;
+    this.quantidade = 1;
   }
 
   mostrarTelaDesconto() {
@@ -220,6 +263,7 @@ export class VendaComponent implements OnInit {
     // Aplica o desconto ao confirmar
     const totalBruto = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
     this.descontoAplicado = this.valorDesconto ? totalBruto * (this.valorDesconto / 100) : 0;
+    this.porcentagemDesconto = this.descontoAplicado / totalBruto * 100;
     this.mostrarDesconto = false;
     this.atualizarTotal();
   }
@@ -242,6 +286,7 @@ export class VendaComponent implements OnInit {
   reset() {
     this.produtos = [];
     this.total = 0;
+    this.totalSemDesconto = 0; // Resetando o total sem desconto
     this.descontoAplicado = 0;
     this.cliente = null;
     this.tipoFinalizacaoVenda = null;
@@ -251,15 +296,26 @@ export class VendaComponent implements OnInit {
   converterProdutoParaDto(produto: any): ProdutoVenda {
     return {
       descricao: produto.descricao ?? null,
-      precoVenda:  produto.precoVenda ?? null,
+      precoVenda: produto.precoVenda ?? null,
       unidadeVenda: produto.unidadeVenda?.codigo ?? null,
       fabricante: produto.fabricante?.codigo ?? null,
       quantidade: this.quantidade,
       modelo: produto.modelo ?? null,
       codigo: produto.codigo,
-      estoque:produto.estoque,
-      observacao:produto.observacao
+      estoque: produto.estoque,
+      observacao: produto.observacao
     };
+  }
+
+  cancelarVenda() {
+    this.produtos = [];
+    this.total = 0;
+    this.totalSemDesconto = 0; // Resetando o total sem desconto
+    this.descontoAplicado = 0;
+    this.cliente = null;
+    this.tipoFinalizacaoVenda = null;
+    this.parcelas = null;
+    this.router.navigate(['/home']);
   }
 }
 
