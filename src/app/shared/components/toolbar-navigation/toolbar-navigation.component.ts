@@ -56,30 +56,9 @@ export class ToolbarNavigationComponent implements OnInit {
         icon: 'pi pi-fw pi-money-bill',
         items: [
           {
-            label: 'Pedido de Compra',
-            icon: 'pi pi-fw pi-cart-plus',
-            routerLink: ['/billing/purchaseOrder'],
-          },
-          {
             label: 'Venda',
             icon: 'pi pi-fw pi-cart-plus',
             routerLink: ['/faturamento/modulo-vendas'],
-          },
-          {
-            label: 'Nota Fiscal',
-            icon: 'pi pi-fw pi-calculator',
-            items: [
-              {
-                label: 'Entrada',
-                icon: 'pi pi-fw pi-calculator',
-                routerLink: ['/billing/entry'],
-              },
-              {
-                label: 'Saída',
-                icon: 'pi pi-fw pi-calculator',
-                routerLink: ['/billing/exit'],
-              },
-            ],
           },
           {
             label: 'Estoque',
@@ -88,38 +67,38 @@ export class ToolbarNavigationComponent implements OnInit {
           }
         ],
       },
-      {
-        label: 'Financeiro',
-        icon: 'pi pi-fw pi-calculator',
-        items: [
-          {
-            label: 'Titulo',
-            items: [
-              {
-                label: 'Receber',
-                routerLink: ['/financial/account/receive'],
-              },
-              {
-                label: 'Pagar',
-                routerLink: ['/financial/account/pay'],
-              },
-            ],
-          },
-          {
-            label: 'Movimentação',
-            items: [
-              {
-                label: 'Entrada',
-                routerLink: ['/financial/movement/entry'],
-              },
-              {
-                label: 'Saída',
-                routerLink: ['/financial/movement/exit'],
-              },
-            ],
-          }
-        ],
-      },
+      // {
+      //   label: 'Financeiro',
+      //   icon: 'pi pi-fw pi-calculator',
+      //   items: [
+      //     {
+      //       label: 'Titulo',
+      //       items: [
+      //         {
+      //           label: 'Receber',
+      //           routerLink: ['/financial/account/receive'],
+      //         },
+      //         {
+      //           label: 'Pagar',
+      //           routerLink: ['/financial/account/pay'],
+      //         },
+      //       ],
+      //     },
+      //     {
+      //       label: 'Movimentação',
+      //       items: [
+      //         {
+      //           label: 'Entrada',
+      //           routerLink: ['/financial/movement/entry'],
+      //         },
+      //         {
+      //           label: 'Saída',
+      //           routerLink: ['/financial/movement/exit'],
+      //         },
+      //       ],
+      //     }
+      //   ],
+      // },
       {
         label: 'Configuração',
         icon: 'pi pi-fw pi-database',

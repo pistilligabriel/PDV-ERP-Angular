@@ -18,6 +18,7 @@ registerLocaleData(localePt, 'pt-BR');
 export interface PedidoDto {
   integrante: Clientes;
   desconto: number;
+  dataEmissao?: string;
   status:Status;
   formaPagamento: FormaPagamento;
   parcelas: number;

@@ -1,16 +1,19 @@
+import { style } from '@angular/animations';
+import { registerLocaleData } from '@angular/common';
+import localePt from '@angular/common/locales/pt';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import * as FileSaver from 'file-saver';
 import { MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
+import { ResponseModuloVendaDto } from 'src/app/models/dtos/ModuloVenda/ResponseModuloVendaDto';
+import { ItemDto } from 'src/app/models/dtos/Produto/ItemDto';
 import { Column } from 'src/app/models/interfaces/Column';
 import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
 import { VendaService } from 'src/app/services/faturamento/venda/venda.service';
-import { PedidoDto } from '../venda/venda.component';
-import { ResponseModuloVendaDto } from 'src/app/models/dtos/ModuloVenda/ResponseModuloVendaDto';
 
-
+registerLocaleData(localePt, 'pt-BR');
 
 @Component({
   selector: 'app-modulo-vendas',
@@ -19,11 +22,11 @@ import { ResponseModuloVendaDto } from 'src/app/models/dtos/ModuloVenda/Response
 })
 export class ModuloVendasComponent implements OnInit {
 
- 
+
   private destroy$: Subject<void> = new Subject<void>();
 
   @ViewChild('tabelaVenda') tabelaVenda: Table | undefined;
-  
+
   /**
    * Flag para exibir ou ocultar o formulário de grupo de usuário.
    */
@@ -44,6 +47,10 @@ export class ModuloVendasComponent implements OnInit {
    * Valor digitado no campo pesquisa
    */
   valorPesquisa!: string;
+  
+  mostrarDialogProdutos: boolean = false;
+
+  produtosSelecionados: ItemDto[] = [];
 
   /**
    * Limpa a seleção da tabela.
@@ -79,6 +86,8 @@ export class ModuloVendasComponent implements OnInit {
       { field: 'status', header: 'Status' },
       { field: 'dataEmissao', header: 'Data Emissão' },
       { field: 'cliente', header: 'Cliente' },
+      { field: 'valorBruto', header: 'Total Bruto' },
+      { field: 'desconto', header: 'Desconto' },
       { field: 'valorTotal', header: 'Valor Total' },
       // { field: 'lucroVenda', header: 'Lucro Venda' },
     ];
@@ -103,21 +112,73 @@ export class ModuloVendasComponent implements OnInit {
    * Exporta os dados da tabela para um arquivo PDF.
    */
   exportPdf() {
-    import('jspdf').then((jsPDF) => {
-      import('jspdf-autotable').then((x) => {
-        const doc = new jsPDF.default('p', 'px', 'a4');
-        (doc as any).autoTable(this.exportColumns, this.vendasDatas);
-        doc.save('vendas.pdf');
+  import('jspdf').then((jsPDF) => {
+    import('jspdf-autotable').then(() => {
+      const doc = new jsPDF.default('p', 'px', 'a4');
+
+      // Monta os dados dos produtos de cada pedido
+      const pedidos: any[] = [];
+      this.vendasDatas.forEach(venda => {
+        if (venda.pedidoDto && venda.pedidoDto.produtos) {
+          venda.pedidoDto.produtos.forEach(produto => {
+            pedidos.push({
+              CodigoVenda: venda.codigo,
+              Cliente: venda.pedidoDto.integrante.nome,
+              DataEmissao: venda.pedidoDto.dataEmissao,
+              Produto: produto.descricao,
+              Quantidade: produto.quantidade,
+              ValorUnitario: (produto?.precoVenda ?? 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}),
+              ValorTotal: ((produto?.precoVenda ?? 0) * produto.quantidade).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}),
+            });
+          });
+        }
       });
+
+      // Define as colunas para o PDF
+      const columns = [
+        { header: 'Código Venda', dataKey: 'CodigoVenda' },
+        { header: 'Cliente', dataKey: 'Cliente' },
+        { header: 'Data Emissão', dataKey: 'DataEmissao' },
+        { header: 'Produto', dataKey: 'Produto' },
+        { header: 'Quantidade', dataKey: 'Quantidade' },
+        { header: 'Valor Unitário', dataKey: 'ValorUnitario' },
+        { header: 'Valor Total', dataKey: 'ValorTotal' }
+      ];
+
+      (doc as any).autoTable({
+        columns: columns,
+        body: pedidos,
+        styles: { fontSize: 8 }
+      });
+
+      doc.save('vendas_pedidos.pdf');
     });
-  }
+  });
+}
 
   /**
    * Exporta os dados da tabela para um arquivo Excel.
    */
   exportExcel() {
     import('xlsx').then((xlsx) => {
-      const worksheet = xlsx.utils.json_to_sheet(this.vendasDatas);
+      const pedidos: any[] = [];
+      this.vendasDatas.forEach(venda => {
+        if (venda.pedidoDto && venda.pedidoDto.produtos) {
+          venda.pedidoDto.produtos.forEach(produto => {
+            pedidos.push({
+              'Código Venda': venda.codigo,
+              'Cliente': venda.pedidoDto.integrante.nome,
+              'Data Emissão': venda.pedidoDto.dataEmissao,
+              'Produto': produto.descricao,
+              'Quantidade': produto.quantidade,
+              'Valor Unitário': (produto?.precoVenda ?? 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}),
+              'Valor Total': ((produto?.precoVenda ?? 0) * produto.quantidade).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}),
+            });
+          });
+        }
+      });
+      
+      const worksheet = xlsx.utils.json_to_sheet(pedidos);
       const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
       const excelBuffer: any = xlsx.write(workbook, {
         bookType: 'xlsx',
@@ -208,6 +269,11 @@ export class ModuloVendasComponent implements OnInit {
           this.router.navigate(['/home']);
         },
       });
+  }
+
+  verProdutos(venda:number) {
+    this.produtosSelecionados = this.vendasDatas.find(v => v.codigo === venda)?.pedidoDto?.produtos || [];
+    this.mostrarDialogProdutos = true;
   }
 
   /**
