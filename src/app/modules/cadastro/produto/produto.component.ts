@@ -1,4 +1,3 @@
-import { async } from '@angular/core/testing';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,28 +5,27 @@ import { format } from 'date-fns';
 import * as FileSaver from 'file-saver';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { Column } from 'src/app/models/interfaces/Column';
 import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
-import { ProdutoService } from 'src/app/services/cadastro/produto/produto.service';
-import { UnidadeMedida } from '../unidade-medida/page/unidade-medida.component';
-import { UnidadeMedidaService } from 'src/app/services/cadastro/unidade-medida/unidade-medida.service';
 import { DropDownOptions } from 'src/app/models/interfaces/product/DropDownOptions';
-import { getLocaleDateTimeFormat } from '@angular/common';
-import { Marca } from '../marca/page/marca.component';
 import { MarcaService } from 'src/app/services/cadastro/marca/marca.service';
+import { ProdutoService } from 'src/app/services/cadastro/produto/produto.service';
+import { UnidadeMedidaService } from 'src/app/services/cadastro/unidade-medida/unidade-medida.service';
+import { Marca } from '../marca/page/marca.component';
+import { UnidadeMedida } from '../unidade-medida/page/unidade-medida.component';
 
 export interface Produto {
   codigo: bigint,
   descricao: string,
   observacao: string,
   fabricante: Marca,
-  modelo:string,
+  modelo: string,
   unidadeVenda?: UnidadeMedida,
   precoCusto: number,
   estoque: number,
-  quantidade:number,
-  desconto:number,
+  quantidade: number,
+  desconto: number,
   precoVenda: number,
   margemLucro: number,
   status: string;
@@ -71,6 +69,7 @@ export interface EditarProduto {
   styleUrls: []
 })
 export class ProdutoComponent implements OnInit, OnDestroy {
+
   private readonly destroy$: Subject<void> = new Subject<void>();
 
 
@@ -123,6 +122,11 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     table.clear();
   }
 
+  atualizarTabela() {
+    this.valorPesquisa = "";
+    this.listarProdutos();
+  }
+
   cols!: Column[];
 
   colunasSelecionadas!: Column[];
@@ -137,7 +141,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     descricao: ['', [Validators.required]],
     observacao: [''],
     fabricante: [null as bigint | null, [Validators.required]],
-    modelo:[''],
+    modelo: [''],
     unidadeVenda: [null as bigint | null, [Validators.required]],
     precoCusto: [null as number | null, [Validators.required]],
     estoque: [null as number | null, [Validators.required]],
@@ -162,42 +166,42 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     ];
     this.colunasSelecionadas = this.cols;
 
-   this.unidadeService.getAllUnidades().subscribe({
-    next: (unidades) => {
-      this.unidadeMedidas = unidades.map(u => ({
-        label: `${u.descricao} - (${u.simbolo})`,
-        value: u.codigo // ou u.codigo, dependendo do que você salva no produto
-      }));
-    },
-    error: (err) => {
-      this.unidadeMedidas = [];
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Erro ao carregar unidades de medida!',
-        life: 3000,
-      });
-    }
-  });
+    this.unidadeService.getAllUnidades().subscribe({
+      next: (unidades) => {
+        this.unidadeMedidas = unidades.map(u => ({
+          label: `${u.descricao} - (${u.simbolo})`,
+          value: u.codigo // ou u.codigo, dependendo do que você salva no produto
+        }));
+      },
+      error: (err) => {
+        this.unidadeMedidas = [];
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Erro ao carregar unidades de medida!',
+          life: 3000,
+        });
+      }
+    });
 
- this.marcaService.getAllMarca().subscribe({
-    next: (marca) => {
-      this.marca = marca.map(m => ({
-        label: `${m.descricao}`,
-        value: m.codigo // ou u.codigo, dependendo do que você salva no produto
-      }));
-    },
-    error: (err) => {
-      this.marca = [];
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Erro ao carregar marcas!',
-        life: 3000,
-      });
-    }
-  });
-  
+    this.marcaService.getAllMarca().subscribe({
+      next: (marca) => {
+        this.marca = marca.map(m => ({
+          label: `${m.descricao}`,
+          value: m.codigo // ou u.codigo, dependendo do que você salva no produto
+        }));
+      },
+      error: (err) => {
+        this.marca = [];
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Erro ao carregar marcas!',
+          life: 3000,
+        });
+      }
+    });
+
   }
 
   /**
@@ -300,7 +304,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       codigo: null,
       descricao: null,
       observacao: null,
-      modelo:null,
+      modelo: null,
       fabricante: null,
       unidadeVenda: null,
       precoCusto: null,
@@ -484,7 +488,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         descricao: this.produtoForm.value.descricao as string,
         observacao: this.produtoForm.value.observacao as string,
         fabricante: this.produtoForm.value.fabricante as bigint,
-        modelo:this.produtoForm.value.modelo as string,
+        modelo: this.produtoForm.value.modelo as string,
         unidadeVenda: this.produtoForm.value.unidadeVenda as bigint,
         precoCusto: this.produtoForm.value.precoCusto as number,
         estoque: this.produtoForm.value.estoque as number,
@@ -547,7 +551,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         descricao: this.produtoForm.value.descricao as string,
         observacao: this.produtoForm.value.observacao as string,
         fabricante: this.produtoForm.value.fabricante as bigint,
-        modelo:this.produtoForm.value.modelo as string,
+        modelo: this.produtoForm.value.modelo as string,
         unidadeVenda: this.produtoForm.value.unidadeVenda as bigint,
         precoCusto: this.produtoForm.value.precoCusto as number,
         estoque: this.produtoForm.value.estoque as number,

@@ -134,6 +134,8 @@
                     icon="pi pi-filter-slash"
                     (click)="clear(tabelaUsuario)"
                   ></button>
+                   <button pButton class="p-button-outlined ml-3" icon="pi pi-refresh"
+                    (click)="atualizarTabela()"></button>
                 </div>
               </ng-template>
 
@@ -270,6 +272,12 @@
             <form [formGroup]="userForm" (ngSubmit)="adicionarOuEditarUsuario()">
               <div class="card flex flex-column md:flex-column gap-4">
                 <div class="flex flex-row">
+
+                  <div class="flex flex-column mr-2">
+                    <label for="label">Código</label>
+                    <input pInputText formControlName="codigo" />
+                  </div>
+
                   <div class="flex flex-column mr-2">
                     <label for="label">Status</label>
                     <input pInputText formControlName="status" />

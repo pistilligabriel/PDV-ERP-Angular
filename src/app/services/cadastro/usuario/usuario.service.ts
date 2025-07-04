@@ -38,9 +38,9 @@ export class UsuarioService {
     return token ? true : false;
   }
 
-  getUsuarioEspecifico(CODIGO: bigint): Observable<Usuarios> {
+  getUsuarioEspecifico(codigo: bigint): Observable<Usuarios> {
     return this.http.get<Usuarios>(
-      `${this.API_URL}/usuarios/${CODIGO}`,
+      `${this.API_URL}/usuarios/${codigo}`,
       this.httpOptions
     );
   }
@@ -68,9 +68,9 @@ export class UsuarioService {
     );
   }
 
-  desativarUsuario(CODIGO: bigint): Observable<Array<Usuarios>> {
-    return this.http.post<Array<Usuarios>>(
-      `${this.API_URL}/usuarios/desativar/${CODIGO}`,
+  desativarUsuario(codigo: bigint): Observable<Array<Usuarios>> {
+    return this.http.put<Array<Usuarios>>(
+      `${this.API_URL}/usuarios/alterar-status/${codigo}`,
       this.httpOptions
     );
   }

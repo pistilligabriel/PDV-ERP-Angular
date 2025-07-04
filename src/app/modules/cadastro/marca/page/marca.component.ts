@@ -44,6 +44,7 @@ export interface CarregarEditarMarca {
   styleUrls: []
 })
 export class MarcaComponent implements OnInit, OnDestroy {
+
   private destroy$: Subject<void> = new Subject<void>();
 
   @ViewChild('tabelaMarca') tabelaMarca: Table | undefined;
@@ -77,6 +78,11 @@ export class MarcaComponent implements OnInit, OnDestroy {
     this.valorPesquisa = ""
     table.clear();
   }
+
+  atualizarTabela() {
+    this.valorPesquisa = "";
+    this.listarMarcas();
+}
 
   cols!: Column[];
 

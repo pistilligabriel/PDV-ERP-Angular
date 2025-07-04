@@ -1,5 +1,6 @@
 export interface CarregarEditarUsuario {
   codigo: bigint;
+  dataCadastro:string;
   nome:string;
   sobrenome:string;
   telefone:string;

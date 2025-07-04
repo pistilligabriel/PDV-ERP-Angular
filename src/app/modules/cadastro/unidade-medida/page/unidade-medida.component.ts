@@ -47,7 +47,8 @@ export interface CarregarEditarUnidadeMedida {
   styleUrls: []
 })
 export class UnidadeMedidaComponent implements OnInit, OnDestroy {
-  
+
+
 
   private destroy$: Subject<void> = new Subject<void>();
 
@@ -83,6 +84,11 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
   clear(table: Table) {
     this.valorPesquisa = ""
     table.clear();
+  }
+
+  atualizarTabela() {
+    this.valorPesquisa = "";
+    this.listarUnidades();
   }
 
   cols!: Column[];
@@ -235,7 +241,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
       simbolo: null,
       status: 'ATIVO',
       empresa: 1,
-      versao:formattedDate,
+      versao: formattedDate,
     });
   }
 
