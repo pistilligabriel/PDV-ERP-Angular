@@ -3,4 +3,5 @@ export enum Status {
   DESATIVADO = 'INATIVO',
   NORMAL = 'NORMAL',
   CANCELADO = 'CANCELADO',
+  FINALIZADO = 'FINALIZADO'
 }

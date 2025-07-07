@@ -1,7 +1,9 @@
+import { Tipo } from "../../enums/users/Tipo.enum";
+
 export interface EditarUsuario {
-  CODIGO: bigint;
-  nome: string;
-  sobrenome: string;
+  codigo: bigint;
+  nomeCompleto: string;
+  tipo:Tipo,
   telefone:string;
   email: string;
   documento: string;

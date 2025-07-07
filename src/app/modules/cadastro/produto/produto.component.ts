@@ -1,4 +1,3 @@
-import { async } from '@angular/core/testing';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -6,57 +5,66 @@ import { format } from 'date-fns';
 import * as FileSaver from 'file-saver';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { Column } from 'src/app/models/interfaces/Column';
 import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
+import { DropDownOptions } from 'src/app/models/interfaces/product/DropDownOptions';
+import { MarcaService } from 'src/app/services/cadastro/marca/marca.service';
 import { ProdutoService } from 'src/app/services/cadastro/produto/produto.service';
+import { UnidadeMedidaService } from 'src/app/services/cadastro/unidade-medida/unidade-medida.service';
+import { Marca } from '../marca/page/marca.component';
+import { UnidadeMedida } from '../unidade-medida/page/unidade-medida.component';
+import { UsuarioPerfil } from 'src/app/models/interfaces/usuario/UsuarioPerfil';
+import { Usuarios } from 'src/app/models/interfaces/usuario/response/UsuariosResponse';
+import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
+import { Tipo } from 'src/app/models/enums/users/Tipo.enum';
+import { Usuario } from '../usuario/page/usuario.component';
 
 export interface Produto {
-  CODIGO: bigint,
+  codigo: bigint,
   descricao: string,
-  observacao:string,
-  fabricante: string,
-  codigoOriginal: string,
-  codigoBarras: string,
-  unidadeVenda?: string,
-  precoCusto:number,
+  observacao: string,
+  fabricante: Marca,
+  modelo: string,
+  unidadeVenda?: UnidadeMedida,
+  precoCusto: number,
   estoque: number,
+  quantidade: number,
+  desconto: number,
   precoVenda: number,
-  margemLucro:number,
+  margemLucro: number,
   status: string;
   empresa: number;
   versao: string;
   dataCadastro: string;
 }
 
-export interface AdicionarProduto{
+export interface AdicionarProduto {
   descricao: string,
-  observacao:string,
-  fabricante: string,
-  codigoOriginal: string,
-  codigoBarras: string,
-  unidadeVenda: string,
-  precoCusto:number,
+  observacao: string,
+  fabricante: bigint,
+  modelo: string,
+  unidadeVenda: bigint,
+  precoCusto: number,
   estoque: number,
   precoVenda: number,
-  margemLucro:number,
+  margemLucro: number,
   empresa: number
 }
 
 export interface EditarProduto {
-  CODIGO: bigint,
+  codigo: bigint,
   descricao: string,
-  observacao:string,
-  fabricante: string,
-  codigoOriginal: string,
-  codigoBarras: string,
-  unidadeVenda: string,
-  precoCusto:number,
+  observacao: string,
+  fabricante: bigint,
+  modelo: string,
+  unidadeVenda: bigint,
+  precoCusto: number,
   estoque: number,
   precoVenda: number,
-  margemLucro:number,
+  margemLucro: number,
   empresa: number,
-  status:string;
+  status: string;
 }
 
 
@@ -66,6 +74,7 @@ export interface EditarProduto {
   styleUrls: []
 })
 export class ProdutoComponent implements OnInit, OnDestroy {
+
   private readonly destroy$: Subject<void> = new Subject<void>();
 
 
@@ -81,50 +90,31 @@ export class ProdutoComponent implements OnInit, OnDestroy {
    */
   public produtoDatas: Array<Produto> = [];
 
-  public produtoSelecionado!: Produto [] | null;
+  public produtoSelecionado!: Produto[] | null;
 
-  unidadeMedidas = [
-    {
-      id:1,
-      descricao: 'Unidade',
-      Sigla: 'UNID'
-    },
-    {
-      id:2,
-      descricao: 'Caixa',
-      Sigla: 'CX'
-    },
-    {
-      id:3,
-      descricao: 'Jogo',
-      Sigla: 'JOGO'
-    },
-    {
-      id:4,
-      descricao: 'Litro',
-      Sigla: 'LT'
-    },
-    {
-      id:5,
-      descricao: 'Pacote',
-      Sigla: 'PCT'
-    },
-    {
-      id:6,
-      descricao: 'Peça',
-      Sigla: 'PC'
-    }
-  ]
+  public produto!: Produto;
 
+  unidadeMedidas!: DropDownOptions[];
 
-  unidadeMedidaSelecionada = null
+  unidadeMedidaSelecionada!: UnidadeMedida;
+
+  marca!: DropDownOptions[];
+
+  marcaSelecionada!: Marca;
+
+  usuario!: Usuario;
+
+  Tipo = Tipo;
 
   constructor(
     private produtoService: ProdutoService,
+    private usuarioService: UsuarioService,
     private messageService: MessageService,
     private router: Router,
     private formBuilderProduto: FormBuilder,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private unidadeService: UnidadeMedidaService,
+    private marcaService: MarcaService
   ) { }
 
   valorPesquisa!: string;
@@ -142,6 +132,11 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     table.clear();
   }
 
+  atualizarTabela() {
+    this.valorPesquisa = "";
+    this.listarProdutos();
+  }
+
   cols!: Column[];
 
   colunasSelecionadas!: Column[];
@@ -152,48 +147,91 @@ export class ProdutoComponent implements OnInit, OnDestroy {
    * Formulário reativo para adicionar/editar grupos de usuários.
    */
   public produtoForm = this.formBuilderProduto.group({
-    CODIGO: [null as bigint | null],
+    codigo: [{value: null as bigint | null, disabled: true}],
     descricao: ['', [Validators.required]],
     observacao: [''],
-    fabricante: [''],
-    codigoOriginal:[''],
-    codigoBarras:[''],
-    unidadeVenda: [ null as string |  null , [Validators.required]],
-    precoCusto:[null as number | null, [Validators.required]],
+    fabricante: [null as bigint | null, [Validators.required]],
+    modelo: [''],
+    unidadeVenda: [null as bigint | null, [Validators.required]],
+    precoCusto: [null as number | null, [Validators.required]],
     estoque: [null as number | null, [Validators.required]],
     precoVenda: [null as number | null, [Validators.required]],
-    margemLucro:[{ value: 0, disabled: true }],
+    margemLucro: [{ value: 0, disabled: true }],
     status: [{ value: '', disabled: true }],
     empresa: [{ value: 1, disabled: true }],
-    dataCadastro:[{ value: null as Date | string | null, disabled: true }],
+    dataCadastro: [{ value: null as Date | string | null, disabled: true }],
     versao: [{ value: null as Date | string | null, disabled: true }],
   });
-
-  consolelog(){
-    console.log(this.produtoForm.value)
-
-  }
 
 
   ngOnInit() {
     this.listarProdutos();
     this.cols = [
       { field: 'status', header: 'Status' },
-      { field: 'descricao', header: 'Descrição'},
+      { field: 'descricao', header: 'Descrição' },
       { field: 'fabricante', header: 'Marca' },
-      { field: 'unidadeVenda', header: 'Unidade Venda' },
+      { field: 'modelo', header: 'Modelo' },
       { field: 'estoque', header: 'Quantidade Estoque' },
-  ];
-  this.colunasSelecionadas = this.cols;
+      { field: 'unidadeVenda', header: 'Unidade Venda' },
+    ];
+    this.colunasSelecionadas = this.cols;
+
+    this.unidadeService.getAllUnidades().subscribe({
+      next: (unidades) => {
+        this.unidadeMedidas = unidades.map(u => ({
+          label: `${u.descricao} - (${u.simbolo})`,
+          value: u.codigo // ou u.codigo, dependendo do que você salva no produto
+        }));
+      },
+      error: (err) => {
+        this.unidadeMedidas = [];
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Erro ao carregar unidades de medida!',
+          life: 3000,
+        });
+      }
+    });
+
+    this.marcaService.getAllMarca().subscribe({
+      next: (marca) => {
+        this.marca = marca.map(m => ({
+          label: `${m.descricao}`,
+          value: m.codigo // ou u.codigo, dependendo do que você salva no produto
+        }));
+      },
+      error: (err) => {
+        this.marca = [];
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Erro ao carregar marcas!',
+          life: 3000,
+        });
+      }
+    });
+
+    this.usuarioService.getUsuarioLogado().subscribe({
+      next: (usuario) => {
+        this.usuario = usuario
+        console.log(this.usuario)
+      },
+      error: (e) => {
+        console.log('Não foi possível obter o usuário logado', e)
+      }
+    })
+
+
   }
 
-   /**
-   * Aplica um filtro global na tabela de grupos de usuários.
-   *
-   * @param $event O evento que acionou a função.
-   * @param stringVal O valor da string para filtrar.
-   */
-   applyFilterGlobal($event: any, stringVal: any) {
+  /**
+  * Aplica um filtro global na tabela de grupos de usuários.
+  *
+  * @param $event O evento que acionou a função.
+  * @param stringVal O valor da string para filtrar.
+  */
+  applyFilterGlobal($event: any, stringVal: any) {
     this.tabelaProduto!.filterGlobal(($event.target as HTMLInputElement).value, stringVal);
   }
 
@@ -238,12 +276,12 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     );
   }
 
-    /**
-   * Retorna a severidade com base no status fornecido.
-   *
-   * @param {string} status - Status a ser avaliado.
-   * @returns {string} - Severidade correspondente.
-   */
+  /**
+ * Retorna a severidade com base no status fornecido.
+ *
+ * @param {string} status - Status a ser avaliado.
+ * @returns {string} - Severidade correspondente.
+ */
   getSeverity(status: string) {
     switch (status) {
       case 'ATIVO':
@@ -255,13 +293,13 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     }
   }
 
-   /**
-   * Manipulador de eventos para a seleção de uma linha na tabela.
-   *
-   * @param {*} event - Evento de seleção de linha.
-   * @returns {void}
-   */
-   onRowSelect(event: any) {
+  /**
+  * Manipulador de eventos para a seleção de uma linha na tabela.
+  *
+  * @param {*} event - Evento de seleção de linha.
+  * @returns {void}
+  */
+  onRowSelect(event: any) {
     console.log('Row selected:', event.data);
     this.produtoSelecionado = event.data;
   }
@@ -272,32 +310,32 @@ export class ProdutoComponent implements OnInit, OnDestroy {
    * @returns {boolean} - Verdadeiro se estiver em modo de edição, falso caso contrário.
    */
   isEdicao(): boolean {
-    console.log('Editar produto:', this.produtoForm.value.CODIGO)
-    return !!this.produtoForm.value.CODIGO;
+    console.log('Editar produto:', this.produtoForm.value.codigo)
+    return !!this.produtoForm.value.codigo;
   }
 
-   /**
-   * Manipulador de eventos para o botão de adição de grupo.
-   * Exibe o formulário de adição de grupo.
-   */
-   onAddButtonClick() {
+  /**
+  * Manipulador de eventos para o botão de adição de grupo.
+  * Exibe o formulário de adição de grupo.
+  */
+  onAddButtonClick() {
+    const formattedDate = format(new Date(), 'dd/MM/yyyy HH:mm:ss');
     this.showForm = true;
     this.produtoForm.setValue({
-      CODIGO: null,
+      codigo: null,
       descricao: null,
       observacao: null,
-      codigoOriginal: null,
-      codigoBarras: null,
+      modelo: null,
       fabricante: null,
       unidadeVenda: null,
       precoCusto: null,
       estoque: null,
       precoVenda: null,
-      margemLucro:null,
-      status: null,
+      margemLucro: null,
+      status: 'ATIVO',
       empresa: 1,
       versao: null,
-      dataCadastro: null,
+      dataCadastro: formattedDate,
     });
 
     this.produtoForm.get('precoVenda')?.valueChanges.subscribe(() => {
@@ -307,30 +345,29 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     this.atualizarMargemLucro();
 
   }
-  verificarCusto(){
+  verificarCusto() {
     console.log(this.produtoForm.value.precoCusto)
   }
 
-  atualizarMargemLucro(){
+  atualizarMargemLucro() {
     const precoCusto = this.produtoForm.get('precoCusto')?.value as number;
     const precoVenda = this.produtoForm.get('precoVenda')?.value as number;
-    if(precoCusto != null && precoVenda != null){
-    const newMargemLucro = (precoVenda - precoCusto) / precoCusto * 100;
-    this.produtoForm.patchValue({
-      margemLucro: newMargemLucro
-    })
-    }else{
-    this.produtoForm.patchValue({
-      margemLucro: null
-    })
-  }
+    if (precoCusto != null && precoVenda != null) {
+      const newMargemLucro = (precoVenda - precoCusto) / precoCusto * 100;
+      this.produtoForm.patchValue({
+        margemLucro: newMargemLucro
+      })
+    } else {
+      this.produtoForm.patchValue({
+        margemLucro: null
+      })
+    }
   }
 
 
 
 
   onEditButtonClick(produto: Produto): void {
-    const formattedDate = format(new Date(produto.versao), 'dd/MM/yyyy HH:mm:ss');
 
 
     if (produto.status === 'DESATIVADO') {
@@ -340,22 +377,21 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       });
     } else {
       this.showForm = true;
-      this.produtoService.getProdutoEspecificoProduto(produto.CODIGO).subscribe(data => {
+      this.produtoService.getProdutoEspecificoProduto(produto.codigo).subscribe(data => {
         this.produtoForm.patchValue({
-          CODIGO: data.CODIGO,
+          codigo: data.codigo,
           descricao: data.descricao,
           observacao: data.observacao,
-          unidadeVenda: data.unidadeVenda,
-          fabricante: data.fabricante,
-          codigoOriginal: data.codigoOriginal,
-          codigoBarras: data.codigoBarras,
+          unidadeVenda: data.unidadeVenda?.codigo as bigint,
+          fabricante: data.fabricante?.codigo as bigint,
+          modelo: data.modelo,
           precoCusto: data.precoCusto,
           estoque: data.estoque,
           precoVenda: data.precoVenda,
           margemLucro: data.margemLucro,
           status: data.status,
           empresa: data.empresa,
-          versao: formattedDate,
+          versao: data.versao,
           dataCadastro: data.dataCadastro,
         });
         this.produtoForm.get('precoVenda')?.valueChanges.subscribe(() => {
@@ -363,16 +399,16 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         });
 
         this.atualizarMargemLucro();
-    })
+      })
     }
   }
 
 
   onDisableButtonClick(produto: Produto): void {
     this.produtoForm.patchValue({
-      CODIGO: produto.CODIGO,
+      codigo: produto.codigo,
     });
-    this.desativarProduto(produto.CODIGO as bigint);
+    this.desativarProduto(produto.codigo as bigint);
   }
 
 
@@ -398,27 +434,29 @@ export class ProdutoComponent implements OnInit, OnDestroy {
   }
 
 
-  carregarProdutoEspecifico(CODIGO: bigint){
+  carregarProdutoEspecifico(codigo: bigint) {
 
-    this.produtoService.getProdutoEspecificoProduto(CODIGO).pipe(takeUntil(this.destroy$)).subscribe({
+    this.produtoService.getProdutoEspecificoProduto(codigo).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         if (response) {
           this.produtoForm.patchValue({
-            CODIGO: response.CODIGO,
+            codigo: response.codigo,
             descricao: response.descricao,
-            fabricante: response.fabricante,
-            unidadeVenda: response.unidadeVenda,
+            fabricante: response.fabricante.codigo,
+            unidadeVenda: response.unidadeVenda?.codigo,
             precoCusto: response.precoCusto,
             estoque: response.estoque,
             precoVenda: response.precoVenda,
-            margemLucro:response.margemLucro,
+            margemLucro: response.margemLucro,
             status: response.status,
             empresa: response.empresa,
             versao: response.versao,
           });
-        }}, error: (error) => {
-          console.log(error);
-      }})
+        }
+      }, error: (error) => {
+        console.log(error);
+      }
+    })
   }
 
   /**
@@ -469,10 +507,9 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       const requestCreateproduto: AdicionarProduto = {
         descricao: this.produtoForm.value.descricao as string,
         observacao: this.produtoForm.value.observacao as string,
-        fabricante: this.produtoForm.value.fabricante as string,
-        codigoOriginal: this.produtoForm.value.codigoOriginal as string,
-        codigoBarras: this.produtoForm.value.codigoBarras as string,
-        unidadeVenda: this.produtoForm.value.unidadeVenda as string,
+        fabricante: this.produtoForm.value.fabricante as bigint,
+        modelo: this.produtoForm.value.modelo as string,
+        unidadeVenda: this.produtoForm.value.unidadeVenda as bigint,
         precoCusto: this.produtoForm.value.precoCusto as number,
         estoque: this.produtoForm.value.estoque as number,
         precoVenda: this.produtoForm.value.precoVenda as number,
@@ -530,13 +567,12 @@ export class ProdutoComponent implements OnInit, OnDestroy {
   editarProduto(): void {
     if (this.produtoForm?.valid) {
       const requestEditProduto: EditarProduto = {
-        CODIGO: this.produtoForm.value.CODIGO as bigint,
+        codigo: this.produtoForm.value.codigo as bigint,
         descricao: this.produtoForm.value.descricao as string,
         observacao: this.produtoForm.value.observacao as string,
-        fabricante: this.produtoForm.value.fabricante as string,
-        codigoOriginal: this.produtoForm.value.codigoOriginal as string,
-        codigoBarras: this.produtoForm.value.codigoBarras as string,
-        unidadeVenda: this.produtoForm.value.unidadeVenda as string,
+        fabricante: this.produtoForm.value.fabricante as bigint,
+        modelo: this.produtoForm.value.modelo as string,
+        unidadeVenda: this.produtoForm.value.unidadeVenda as bigint,
         precoCusto: this.produtoForm.value.precoCusto as number,
         estoque: this.produtoForm.value.estoque as number,
         precoVenda: this.produtoForm.value.precoVenda as number,
@@ -590,14 +626,14 @@ export class ProdutoComponent implements OnInit, OnDestroy {
   /**
    * Desativa um usuário com o código fornecido.
    *
-   * @param {bigint} CODIGO - Código do usuário a ser desativado.
+   * @param {bigint} codigo - Código do usuário a ser desativado.
    * @returns {void}
    */
-  desativarProduto(CODIGO: bigint): void {
-    console.log('Alterar o Status!:', CODIGO);
-    if (CODIGO) {
+  desativarProduto(codigo: bigint): void {
+    console.log('Alterar o Status!:', codigo);
+    if (codigo) {
       this.produtoService
-        .desativarProduto(CODIGO)
+        .desativarProduto(codigo)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {

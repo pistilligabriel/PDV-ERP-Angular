@@ -1,268 +1,338 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { registerLocaleData } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import localePt from '@angular/common/locales/pt'
+import { ProdutoService } from 'src/app/services/cadastro/produto/produto.service';
+import { Produto } from '../cadastro/produto/produto.component';
+import { Clientes } from '../cadastro/cliente/page/cliente.component';
+import { ClienteService } from 'src/app/services/cadastro/cliente/cliente.service';
+import { FormaPagamento } from 'src/app/models/enums/venda/FormaPagamento.enum';
+import { VendaService } from 'src/app/services/faturamento/venda/venda.service';
+import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
-import { format } from 'date-fns';
-import * as FileSaver from 'file-saver';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { Table } from 'primeng/table';
-import { Subject } from 'rxjs';
-import { Column } from 'src/app/models/interfaces/Column';
-import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
+import { ItemDto } from 'src/app/models/dtos/Produto/ItemDto';
+import { Status } from 'src/app/models/enums/Status.enum';
+import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
+import { Usuario } from '../cadastro/usuario/page/usuario.component';
+import { UsuarioPerfil } from 'src/app/models/interfaces/usuario/UsuarioPerfil';
 
-export interface Venda {
-  CODIGO: bigint,
-  status: string,
-  versao: Date
+
+registerLocaleData(localePt, 'pt-BR');
+
+export interface PedidoDto {
+  integrante: Clientes;
+  desconto: number;
+  dataEmissao?: string;
+  status:Status;
+  formaPagamento: FormaPagamento;
+  parcelas: number;
+  porcentagemDesconto?: number;
+  total: number;
+  // lucro: number;
+  totalSemDesconto?: number;
+  produtos: ItemDto[];
 }
+
+export interface ProdutoVenda {
+  codigo: bigint;
+  descricao: string;
+  observacao: string | null;
+  unidadeVenda: number | null; // alterado aqui
+  fabricante: number | null; // alterado aqui
+  modelo: string;
+  precoVenda: number;
+  estoque: number | null;
+  quantidade: number;
+}
+
 
 @Component({
   selector: 'app-venda',
   templateUrl: './venda.component.html',
-  styleUrls: []
+  styleUrls: ['./venda.component.scss']
 })
-
 export class VendaComponent implements OnInit {
 
-  private readonly destroy$: Subject<void> = new Subject<void>();
 
+  produtos: ProdutoVenda[] = [];
 
-  @ViewChild('tabelaVenda') tabelaVenda: Table | undefined;
+  codigoProduto!: bigint | null;
 
-  /**
-   * Flag para exibir ou ocultar o formulário de produto.
-   */
-  public showForm = false;
+  quantidade: number = 1;
 
-  /**
-   * Lista de dados de produtos.
-   */
-  public vendaDatas: Array<Venda> = [];
+  clientes!: Clientes[];
 
-  public vendaSelecionada!: Venda [] | null;
+  cliente: Clientes | null = null;
 
- 
+  total: number = 0;
 
+  totalSemDesconto: number = 0;
 
+  porcentagemDesconto: number = 0;
 
-  unidadeMedidaSelecionada = null
+  mostrarDialogProdutos: boolean = false;
+
+  mostrarDesconto: boolean = false;
+
+  descontoAplicado: number = 0;
+
+  mostrarDialogClientes: boolean = false;
+
+  tipoFinalizacaoVenda!: FormaPagamento | null;
+
+  mostrarDialogCartaoPrazo: boolean = false;
+
+  parcelas!: number | null;
+
+  mostrarDialogQuantidade: boolean = false;
+
+  usuario!: UsuarioPerfil;
 
   constructor(
+    private produtoService: ProdutoService,
+    private usuarioService: UsuarioService,
+    private clienteService: ClienteService,
+    private pedidoService: VendaService,
     private messageService: MessageService,
-    private router: Router,
-    private formBuilderProduto: FormBuilder,
-    private confirmationService: ConfirmationService
+    private router: Router
   ) { }
 
-  valorPesquisa!: string;
 
-  /**
-   * Limpa a seleção da tabela.
-   *
-   * @public
-   * @memberof ProdutoComponent
-   * @param {Table} table - Instância da tabela a ser limpa.
-   * @returns {void}
-   */
-  clear(table: Table) {
-    this.valorPesquisa = ""
-    table.clear();
+  ngOnInit(): void {
+    this.clienteService.getAllCliente().subscribe(c => {
+      this.clientes = c;
+    })
+
+    this.produtoService.getAllProdutosVenda().subscribe(produtos => {
+      this.catalogo = produtos;
+    })
+
+    this.total = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
+
+    console.log(this.catalogo)
+
+  //   this.usuarioService.getUsuarioLogado().subscribe({
+  //     next: (usuario) => {
+  //       this.usuario = usuario
+  //     },
+  //     error: (err) => {
+  //       console.log('Não foi possível obter usuario logado', err)
+  //     }
+  //   }
+  // )
   }
 
-  cols!: Column[];
+  // Simulação de banco de produtos
+  catalogo: ProdutoVenda[] = [];
 
-  colunasSelecionadas!: Column[];
+  valorDesconto!: number | null;
 
-  exportColumns!: ExportColumn[];
+  adicionarProduto() {
+    if (!this.codigoProduto) return;
 
-  /**
-   * Formulário reativo para adicionar/editar grupos de usuários.
-   */
-  public produtoForm = this.formBuilderProduto.group({
-    CODIGO: [null as bigint | null],
-    descricao: ['', [Validators.required]],
-    observacao: [''],
-    fabricante: [''],
-    codigoOriginal:[''],
-    codigoBarras:[''],
-    unidadeVenda: [ null as string |  null , [Validators.required]],
-    precoCusto:[null as number | null, [Validators.required]],
-    estoque: [null as number | null, [Validators.required]],
-    precoVenda: [null as number | null, [Validators.required]],
-    margemLucro:[{ value: 0, disabled: true }],
-    status: [{ value: '', disabled: true }],
-    empresa: [{ value: 1, disabled: true }],
-    dataCadastro:[{ value: null as Date | string | null, disabled: true }],
-    versao: [{ value: null as Date | string | null, disabled: true }],
-  });
+    const produtoCatalogo = this.catalogo?.find(p => p.codigo === this.codigoProduto);
 
-  consolelog(){
-    console.log(this.produtoForm.value)
-
-  }
-
-
-  ngOnInit() {
-    
-    this.cols = [
-      { field: 'status', header: 'Status' },
-      { field: 'descricao', header: 'Descrição'},
-      { field: 'fabricante', header: 'Marca' },
-      { field: 'unidadeVenda', header: 'Unidade Venda' },
-      { field: 'estoque', header: 'Quantidade Estoque' },
-  ];
-  this.colunasSelecionadas = this.cols;
-  }
-
-   /**
-   * Aplica um filtro global na tabela de grupos de usuários.
-   *
-   * @param $event O evento que acionou a função.
-   * @param stringVal O valor da string para filtrar.
-   */
-   applyFilterGlobal($event: any, stringVal: any) {
-    this.tabelaVenda!.filterGlobal(($event.target as HTMLInputElement).value, stringVal);
-  }
-
-  /**
-   * Exporta os dados da tabela para um arquivo PDF.
-   */
-  exportPdf() {
-    import('jspdf').then((jsPDF) => {
-      import('jspdf-autotable').then((x) => {
-        const doc = new jsPDF.default('p', 'px', 'a4');
-        (doc as any).autoTable(this.exportColumns, this.vendaDatas);
-        doc.save('vendas.pdf');
-      });
-    });
-  }
-
-  /**
-   * Exporta os dados da tabela para um arquivo Excel.
-   */
-  exportExcel() {
-    import('xlsx').then((xlsx) => {
-      const worksheet = xlsx.utils.json_to_sheet(this.vendaDatas);
-      const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
-      const excelBuffer: any = xlsx.write(workbook, {
-        bookType: 'xlsx',
-        type: 'array',
-      });
-      this.saveAsExcelFile(excelBuffer, 'vendas');
-    });
-  }
-
-  saveAsExcelFile(buffer: any, fileName: string): void {
-    let EXCEL_TYPE =
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-    let EXCEL_EXTENSION = '.xlsx';
-    const data: Blob = new Blob([buffer], {
-      type: EXCEL_TYPE,
-    });
-    FileSaver.saveAs(
-      data,
-      fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION
-    );
-  }
-
-    /**
-   * Retorna a severidade com base no status fornecido.
-   *
-   * @param {string} status - Status a ser avaliado.
-   * @returns {string} - Severidade correspondente.
-   */
-  getSeverity(status: string) {
-    switch (status) {
-      case 'ATIVO':
-        return 'success';
-      case 'DESATIVADO':
-        return 'danger';
-      default:
-        return ''; // Add a default case that returns a default value
-    }
-  }
-
-   /**
-   * Manipulador de eventos para a seleção de uma linha na tabela.
-   *
-   * @param {*} event - Evento de seleção de linha.
-   * @returns {void}
-   */
-   onRowSelect(event: any) {
-    console.log('Row selected:', event.data);
-    this.vendaSelecionada = event.data;
-  }
-
-  /**
-   * Verifica se o formulário está em modo de edição.
-   *
-   * @returns {boolean} - Verdadeiro se estiver em modo de edição, falso caso contrário.
-   */
-  isEdicao(): boolean {
-    console.log('Editar venda:', this.produtoForm.value.CODIGO)
-    return !!this.produtoForm.value.CODIGO;
-  }
-
-   /**
-   * Manipulador de eventos para o botão de adição de grupo.
-   * Exibe o formulário de adição de grupo.
-   */
-   onAddButtonClick() {
-    this.showForm = true;
-    this.produtoForm.setValue({
-      CODIGO: null,
-      descricao: null,
-      observacao: null,
-      codigoOriginal: null,
-      codigoBarras: null,
-      fabricante: null,
-      unidadeVenda: null,
-      precoCusto: null,
-      estoque: null,
-      precoVenda: null,
-      margemLucro:null,
-      status: null,
-      empresa: 1,
-      versao: null,
-      dataCadastro: null,
-    });
-
-  }
-
-  verificarCusto(){
-    console.log(this.produtoForm.value.precoCusto)
-  }
-
-  
-
-
-
-
-  onEditButtonClick(venda: Venda): void {
-    const formattedDate = format(new Date(venda.versao), 'dd/MM/yyyy HH:mm:ss');
-
-
-    if (venda.status === 'DESATIVADO') {
-      this.confirmationService.confirm({
-        header: 'Aviso',
-        message: 'Não é permitido editar um usuário desativado.',
-      });
+    if (produtoCatalogo) {
+      const existente = this.produtos.find(p => p.descricao === produtoCatalogo.descricao);
+      if (existente) {
+        const novaQuantidade = existente.quantidade + this.quantidade;
+        if (produtoCatalogo.estoque !== null && novaQuantidade > produtoCatalogo.estoque) {
+          alert('Quantidade solicitada maior que o estoque disponível!');
+          return;
+        }
+        existente.quantidade = novaQuantidade;
+      } else {
+        const produtoConvertido = this.converterProdutoParaDto(produtoCatalogo);
+        if (produtoConvertido.estoque !== null && produtoConvertido.estoque < this.quantidade) {
+          alert('Quantidade solicitada maior que o estoque disponível!');
+          return;
+        } else {
+          this.produtos.push(produtoConvertido);
+        }
+      }
+      this.codigoProduto = null;
+      this.quantidade = 1;
+      this.atualizarTotal();
     } else {
-      this.showForm = true;
+      alert('Produto não encontrado!');
     }
   }
 
+  removerProduto(codigo: bigint) {
+    this.produtos = this.produtos.filter(p => p.codigo !== codigo);
+    this.atualizarTotal();
+  }
 
-  onDisableButtonClick(venda: Venda): void {
-    this.produtoForm.patchValue({
-      CODIGO: venda.CODIGO,
-    });
-    //this.desativarProduto(produto.CODIGO as bigint);
+  atualizarTotal() {
+    const totalBruto = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
+    this.total = totalBruto - this.descontoAplicado;
+    this.totalSemDesconto = totalBruto; //Atualiza o total sem desconto
+  }
+
+  dinheiro() {
+    this.tipoFinalizacaoVenda = FormaPagamento.DINHEIRO;
+    this.finalizarVenda();
+  }
+
+  pix() {
+    this.tipoFinalizacaoVenda = FormaPagamento.PIX;
+    this.finalizarVenda();
+  }
+
+  cartaoCreditoAVista() {
+    this.tipoFinalizacaoVenda = FormaPagamento.CARTAO_CREDITO_A_VISTA,
+      this.finalizarVenda();
   }
 
 
-  
+  cartaoAPrazo() {
+    this.tipoFinalizacaoVenda = FormaPagamento.CARTAO_PARCELADO,
+      this.mostrarDialogCartaoPrazo = false;
+    setTimeout(() => {
+      this.finalizarVenda();
+    }, 500);
+  }
+
+  finalizarVenda() {
+    if (this.produtos.length === 0) {
+      alert('Nenhum produto na venda!');
+      return;
+    }
+    if (!this.cliente) {
+      alert('Selecione um cliente para finalizar a venda!');
+      return;
+    }
+
+    const produtosCorrigidos: ProdutoVenda[] = this.produtos.map(produto => ({
+      codigo: produto.codigo,
+      descricao: produto.descricao,
+      observacao: produto.observacao ?? null,
+      unidadeVenda: produto.unidadeVenda ?? null,
+      fabricante: produto.fabricante ?? null,
+      modelo: produto.modelo ?? '',
+      precoVenda: produto.precoVenda ?? null,
+      estoque: produto.estoque ?? null,
+      quantidade: produto.quantidade ?? 1,
+    }));
+
+    console.log('Venda finalizada:', produtosCorrigidos, this.cliente, this.tipoFinalizacaoVenda, this.parcelas);
+
+    const pedido: PedidoDto = {
+      integrante: this.cliente as Clientes,
+      produtos: produtosCorrigidos,
+      status: Status.FINALIZADO,
+      formaPagamento: this.tipoFinalizacaoVenda as FormaPagamento,
+      porcentagemDesconto: this.porcentagemDesconto,
+      parcelas: this.parcelas as number,
+      desconto: this.descontoAplicado as number,
+      total: this.total,
+      // lucro: produtosCorrigidos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0) - this.total,
+      totalSemDesconto: this.totalSemDesconto // Inclui o total sem desconto
+    };
+    this.pedidoService.criarPedido(pedido).subscribe(response => {
+      console.log('Pedido criado com sucesso:', response);
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Sucesso',
+        detail: 'Pedido criado com sucesso!'
+      });
+      this.router.navigate(['/faturamento/modulo-vendas']);
+      this.reset();
+    }, error => {
+      console.error('Erro ao criar pedido:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Erro ao criar pedido!'
+      });
+      this.reset();
+    });
+
+    alert('Venda finalizada com sucesso!');
+  }
+
+  buscarProduto() {
+    this.mostrarDialogProdutos = true; // ABRE O DIALOG
+  }
+
+  selecionarProduto(produto: Produto) {
+    this.codigoProduto = produto.codigo;
+    this.mostrarDialogProdutos = false;
+    this.mostrarDialogQuantidade = true;
+  }
+
+  quantidadeItem() {
+    this.adicionarProduto();
+    this.mostrarDialogQuantidade = false;
+    this.quantidade = 1;
+  }
+
+  mostrarTelaDesconto() {
+    this.mostrarDesconto = true;
+  }
 
 
+  mostrarTelaCartaoPrazo() {
+    this.mostrarDialogCartaoPrazo = true;
+  }
 
 
+  aplicarDesconto() {
+    // Aplica o desconto ao confirmar
+    const totalBruto = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
+    this.descontoAplicado = this.valorDesconto ? totalBruto * (this.valorDesconto / 100) : 0;
+    this.porcentagemDesconto = this.descontoAplicado / totalBruto * 100;
+    this.mostrarDesconto = false;
+    this.atualizarTotal();
+  }
+
+  mostrarTelaCliente() {
+    this.mostrarDialogClientes = true;
+  }
+
+  selecionarCliente(cliente: Clientes) {
+    this.cliente = cliente;
+    console.log(cliente);
+    this.mostrarDialogClientes = false;
+  }
+
+  cartaoDebito() {
+    this.tipoFinalizacaoVenda = FormaPagamento.CARTAO_DEBITO,
+      this.finalizarVenda();
+  }
+
+  reset() {
+    this.produtos = [];
+    this.total = 0;
+    this.totalSemDesconto = 0; // Resetando o total sem desconto
+    this.descontoAplicado = 0;
+    this.cliente = null;
+    this.tipoFinalizacaoVenda = null;
+    this.parcelas = null;
+  }
+
+  converterProdutoParaDto(produto: any): ProdutoVenda {
+    return {
+      descricao: produto.descricao ?? null,
+      precoVenda: produto.precoVenda ?? null,
+      unidadeVenda: produto.unidadeVenda?.codigo ?? null,
+      fabricante: produto.fabricante?.codigo ?? null,
+      quantidade: this.quantidade,
+      modelo: produto.modelo ?? null,
+      codigo: produto.codigo,
+      estoque: produto.estoque,
+      observacao: produto.observacao
+    };
+  }
+
+  cancelarVenda() {
+    this.produtos = [];
+    this.total = 0;
+    this.totalSemDesconto = 0; // Resetando o total sem desconto
+    this.descontoAplicado = 0;
+    this.cliente = null;
+    this.tipoFinalizacaoVenda = null;
+    this.parcelas = null;
+    this.router.navigate(['/home']);
+  }
 }
+

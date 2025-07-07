@@ -1,6 +1,5 @@
 export interface AdicionarUsuario {
-  nome: string;
-  sobrenome: string;
+  nomeCompleto: string;
   telefone:string;
   email: string;
   documento: string;

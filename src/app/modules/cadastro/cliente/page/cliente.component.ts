@@ -5,88 +5,75 @@ import { format } from 'date-fns';
 import * as FileSaver from 'file-saver';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
+import { Uf } from 'src/app/models/enums/clientes/Uf.enum';
 import { Column } from 'src/app/models/interfaces/Column';
 import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
 import { ClienteService } from 'src/app/services/cadastro/cliente/cliente.service';
 
 export interface Clientes {
-  CODIGO: bigint;
+  codigo: bigint;
   tipoIntegrante: string;
-  nome: string;
-  sobrenome: string;
+  nomeCompleto: string;
   telefone: string;
-  email:string;
-  tipoDocumento:string;
-  documento:string;
-  cep:string;
+  email: string;
+  tipoDocumento: string;
+  documento: string;
+  cep: string;
   logradouro: string;
-  numero:number;
-  bairro:string;
-  municipio:string;
-  estado: string;
-  complemento:string;
-  status: string;
-  empresa: number;
-  versao: string;
-}
-
-export interface LoadEditCliente {
-  CODIGO: bigint;
-  nome: string;
-  sobrenome: string;
-  telefone: string;
-  email:string;
-  tipoDocumento:string;
-  documento:string;
-  cep:string;
-  logradouro: string;
-  numero:string;
-  bairro:string;
-  municipio:string;
-  estado: string;
-  complemento:string;
+  numero: number;
+  bairro: string;
+  municipio: string;
+  uf: Uf;
+  complemento: string;
   status: string;
   empresa: number;
   versao: string;
 }
 
 export interface AddCliente {
-  nome: string;
-  sobrenome: string;
+  nomeCompleto: string;
   telefone: string;
-  email:string;
-  tipoDocumento:string;
-  documento:string;
-  cep:string;
+  email: string;
+  tipoDocumento: string;
+  documento: string;
+  cep: string;
   logradouro: string;
-  numero:string;
-  bairro:string;
-  municipio:string;
-  estado: string;
-  complemento:string;
+  numero: number;
+  bairro: string;
+  municipio: string;
+  uf: Uf;
+  complemento: string;
 }
 export interface EditCliente {
-  CODIGO: bigint;
-  nome: string;
-  sobrenome: string;
+  codigo: bigint;
+  nomeCompleto: string;
+  status: string;
   telefone: string;
-  email:string;
-  tipoDocumento:string;
-  documento:string;
-  cep:string;
+  email: string;
+  tipoDocumento: string;
+  documento: string;
+  cep: string;
   logradouro: string;
-  numero:string;
-  bairro:string;
-  municipio:string;
-  estado: string;
-  complemento:string;
+  numero: number;
+  bairro: string;
+  municipio: string;
+  uf: Uf;
+  complemento: string;
+  versao: string;
+  empresa: number
 }
 
 export interface TipoDocumento {
-  id: number;
+  label: string;
   value: string;
 }
+
+export interface DropdownUfOptions {
+  codigo: string;
+  label: Uf;
+}
+
 
 @Component({
   selector: 'app-cliente',
@@ -94,6 +81,7 @@ export interface TipoDocumento {
   styleUrls: []
 })
 export class ClienteComponent implements OnInit {
+
   private destroy$: Subject<void> = new Subject<void>();
 
   @ViewChild('tabelaCliente') tabelaCliente: Table | undefined;
@@ -118,6 +106,14 @@ export class ClienteComponent implements OnInit {
    */
   valorPesquisa!: string;
 
+  tipoDocumento!: TipoDocumento[]
+
+  tipoDocumentoSelecionado!: TipoDocumento;
+
+  ufOptions!: DropdownUfOptions[];
+
+  ufSelecionada!: Uf
+
   /**
    * Limpa a seleção da tabela.
    *
@@ -131,9 +127,11 @@ export class ClienteComponent implements OnInit {
     table.clear();
   }
 
-  tipoDocumento!: TipoDocumento[]
+  atualizarTabela() {
+    this.valorPesquisa = ""
+    this.listarClientes();
+  }
 
-  tipoDocumentoSelecionado!: TipoDocumento;
 
   cols!: Column[];
 
@@ -144,7 +142,7 @@ export class ClienteComponent implements OnInit {
   constructor(
     private clienteService: ClienteService,
     private messageService: MessageService,
-    private router:Router,
+    private router: Router,
     private formBuilderCliente: FormBuilder,
     private confirmationService: ConfirmationService,
   ) { }
@@ -153,19 +151,18 @@ export class ClienteComponent implements OnInit {
    * Formulário reativo para adicionar/editar grupos de usuários.
    */
   public clienteForm = this.formBuilderCliente.group({
-    CODIGO: [null as bigint | null],
-    nome: ['', [Validators.required]],
-    sobrenome: ['', [Validators.required]],
+    codigo: [{value: null as bigint | null, disabled: true}],
+    nomeCompleto: ['', [Validators.required]],
     telefone: ['', [Validators.required]],
     email: ['', [Validators.required]],
-    tipoDocumento: ['', [Validators.required]],
-    documento:['', [Validators.required]],
+    tipoDocumento: [null as string | null, [Validators.required]],
+    documento: ['', [Validators.required]],
     cep: ['', [Validators.required]],
     logradouro: ['', [Validators.required]],
-    numero: ['', [Validators.required]],
+    numero: [null as number | null, [Validators.required]],
     bairro: ['', [Validators.required]],
     municipio: ['', [Validators.required]],
-    estado: ['', [Validators.required]],
+    uf: ['', [Validators.required]],
     complemento: [''],
     status: [{ value: '', disabled: true }],
     empresa: [{ value: 1, disabled: true }],
@@ -177,21 +174,32 @@ export class ClienteComponent implements OnInit {
     this.listarClientes();
 
     this.cols = [
-      { field: 'status', header: 'Status'},
-      { field: 'nome', header: 'Nome' },
-      { field: 'sobrenome', header: 'Sobrenome' },
-      { field: 'telefone', header: 'Telefone'},
-      { field: 'email', header: 'E-mail'},
+      { field: 'status', header: 'Status' },
+      { field: 'nomeCompleto', header: 'Nome Completo' },
+      { field: 'documento', header: 'Documento' },
+      { field: 'telefone', header: 'Telefone' },
+      { field: 'email', header: 'E-mail' },
+      { field: 'logradouro', header: 'Endereço' },
+      { field: 'bairro', header: 'Bairro' },
+      { field: 'complemento', header: 'Complemento' },
+      { field: 'municipio', header: 'Cidade' },
+      { field: 'uf', header: 'Estado' },
     ];
 
     this.colunasSelecionadas = this.cols;
 
     this.tipoDocumento = [
-      { id: 1, value: 'CPF' },
-      { id: 2, value: 'CNPJ' },
+      { label: 'CPF', value: 'CPF' },
+      { label: 'CNPJ', value: 'CNPJ' },
     ];
 
+    this.ufOptions = Object.entries(Uf).map(([key, value]) => ({
+      codigo: key,
+      label: value,
+    }))
   }
+
+
 
   /**
    * Aplica um filtro global na tabela de grupos de usuários.
@@ -245,12 +253,12 @@ export class ClienteComponent implements OnInit {
     );
   }
 
-    /**
-   * Retorna a severidade com base no status fornecido.
-   *
-   * @param {string} status - Status a ser avaliado.
-   * @returns {string} - Severidade correspondente.
-   */
+  /**
+ * Retorna a severidade com base no status fornecido.
+ *
+ * @param {string} status - Status a ser avaliado.
+ * @returns {string} - Severidade correspondente.
+ */
   getSeverity(status: string) {
     switch (status) {
       case 'ATIVO':
@@ -279,96 +287,103 @@ export class ClienteComponent implements OnInit {
    * @returns {boolean} - Verdadeiro se estiver em modo de edição, falso caso contrário.
    */
   isEdicao(): boolean {
-    console.log(this.clienteForm.value.CODIGO)
-    return !!this.clienteForm.value.CODIGO;
+    console.log('edicao')
+    return !!this.clienteForm.getRawValue().codigo;
   }
 
-      /**
-   * Manipulador de eventos para o botão de adição de grupo.
-   * Exibe o formulário de adição de grupo.
-   */
-      onAddButtonClick() {
-        console.log('Adicionar cliente' )
-        this.showForm = true;
-        this.clienteForm.setValue({
-          CODIGO: null,
-          nome: null,
-          sobrenome: null,
-          telefone: null,
-          email: null,
-          tipoDocumento: null,
-          documento: null,
-          cep: null,
-          logradouro: null,
-          numero: null,
-          bairro: null,
-          municipio: null,
-          estado: null,
-          complemento: null,
-          status: null,
-          empresa: 1,
-          versao: null,
-        });
-      }
 
-      onEditButtonClick(cliente: LoadEditCliente): void {
-        const formattedDate = format(new Date(cliente.versao), 'dd/MM/yyyy HH:mm:ss');
 
-        if (cliente.status === 'DESATIVADO') {
-          this.confirmationService.confirm({
-            header: 'Aviso',
-            message: 'Não é permitido editar um usuário desativado.',
-          });
-        } else {
-          this.showForm = true;
+  /**
+* Manipulador de eventos para o botão de adição de grupo.
+* Exibe o formulário de adição de grupo.
+*/
+  onAddButtonClick() {
+    console.log('Adicionar cliente')
+    this.showForm = true;
+    this.clienteForm.setValue({
+      codigo: null,
+      nomeCompleto: null,
+      telefone: null,
+      email: null,
+      tipoDocumento: null,
+      documento: null,
+      cep: null,
+      logradouro: null,
+      numero: null,
+      bairro: null,
+      municipio: null,
+      uf: null,
+      complemento: null,
+      status: null,
+      empresa: 1,
+      versao: null,
+    });
+  }
 
+  onEditButtonClick(cliente: Clientes): void {
+    console.log(this.isEdicao())
+    // const formattedDate = format(new Date(cliente.versao), 'dd/MM/yyyy HH:mm:ss');
+    console.log("onEditButton")
+    if (cliente.status === 'DESATIVADO') {
+      this.confirmationService.confirm({
+        header: 'Aviso',
+        message: 'Não é permitido editar um usuário desativado.',
+      });
+    } else {
+      this.showForm = true;
+      const ufMaiuscula = this.clienteForm.get('uf')?.value?.toUpperCase();
+
+      this.clienteService.getCliente(cliente.codigo).subscribe(
+        data => {
           this.clienteForm.patchValue({
-            CODIGO: cliente.CODIGO,
-            nome: cliente.nome,
-            sobrenome: cliente.sobrenome,
-            telefone: cliente.telefone,
-            email: cliente.email,
-            tipoDocumento: cliente.tipoDocumento,
-            documento: cliente.documento,
-            cep: cliente.cep,
-            logradouro: cliente.logradouro,
-            numero: cliente.numero,
-            bairro: cliente.bairro,
-            municipio: cliente.municipio,
-            estado: cliente.estado,
-            complemento: cliente.complemento,
-            status: cliente.status,
-            empresa: cliente.empresa,
-            versao: formattedDate,
+            codigo: data.codigo,
+            nomeCompleto: data.nomeCompleto,
+            telefone: data.telefone,
+            email: data.email,
+            tipoDocumento: data.tipoDocumento,
+            documento: data.documento,
+            cep: data.cep,
+            logradouro: data.logradouro,
+            numero: data.numero,
+            bairro: data.bairro,
+            municipio: data.municipio,
+            uf: data.uf as Uf,
+            complemento: data.complemento,
+            status: data.status,
+            empresa: data.empresa,
+            versao: data.versao,
           });
-
-          console.log(this.isEdicao());
+          console.log(data)
         }
-      }
+      )
 
-      onDisableButtonClick(cliente: Clientes): void {
-        this.clienteForm.patchValue({
-          CODIGO: cliente.CODIGO,
-        });
-        this.desativarCliente(cliente.CODIGO as bigint);
-      }
+      console.log(this.isEdicao());
+    }
+  }
 
-      disableSelectedClientes() {
-        this.confirmationService.confirm({
-          message: 'Tem certeza de que deseja excluir os usuarios selecionados?',
-          header: 'Confirmar',
-          icon: 'pi pi-exclamation-triangle',
-          accept: () => {
-            this.clienteDatas = this.clienteDatas.filter((val) => !this.clienteSelecionado?.includes(val));
-            this.clienteSelecionado = null;
-            this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Usuarios Excluídos', life: 3000 });
-          }
-        });
-      }
+  onDisableButtonClick(cliente: Clientes): void {
+    this.clienteForm.patchValue({
+      codigo: cliente.codigo,
+    });
+    this.desativarCliente(cliente.codigo as bigint);
+  }
 
-          /**
-   * Cancela o formulário de adição/editação e limpa os campos.
-   */
+  disableSelectedClientes() {
+    this.confirmationService.confirm({
+      message: 'Tem certeza de que deseja excluir os usuarios selecionados?',
+      header: 'Confirmar',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.clienteDatas = this.clienteDatas.filter((val) => !this.clienteSelecionado?.includes(val));
+        this.clienteSelecionado = null;
+        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Usuarios Excluídos', life: 3000 });
+      }
+    });
+  }
+
+  /**
+* Cancela o formulário de adição/editação e limpa os campos.
+*/
   cancelarFormulario() {
     this.clienteForm.reset();
     this.showForm = false;
@@ -418,22 +433,22 @@ export class ClienteComponent implements OnInit {
    * Adiciona um novo usuário.
    */
   adicionarCliente(): void {
+
     if (this.clienteForm.valid) {
       const requestCreateCliente: AddCliente = {
-        nome: this.clienteForm.value.nome as string,
-        sobrenome: this.clienteForm.value.sobrenome as string,
+        nomeCompleto: this.clienteForm.value.nomeCompleto as string,
         telefone: this.clienteForm.value.telefone as string,
         email: this.clienteForm.value.email as string,
-        tipoDocumento: JSON.parse(JSON.stringify(this.clienteForm.value.tipoDocumento)).value as string,
+        tipoDocumento: this.clienteForm.value.tipoDocumento as string,
         documento: this.clienteForm.value.documento as string,
         cep: this.clienteForm.value.cep as string,
         logradouro: this.clienteForm.value.logradouro as string,
-        numero: this.clienteForm.value.numero as string,
+        numero: this.clienteForm.value.numero as number,
         bairro: this.clienteForm.value.bairro as string,
         municipio: this.clienteForm.value.municipio as string,
-        estado: this.clienteForm.value.estado as string,
+        uf: this.clienteForm.value.uf as Uf,
         complemento: this.clienteForm.value.complemento as string,
-      };console.log(requestCreateCliente)
+      }; console.log(requestCreateCliente)
       this.clienteService
         .addCliente(requestCreateCliente)
         .pipe(takeUntil(this.destroy$))
@@ -482,22 +497,24 @@ export class ClienteComponent implements OnInit {
    * Edita um cliente existente.
    */
   editarCliente(): void {
-      //TODO - Carregar as informações preenchidas antes de editar
+    //TODO - Carregar as informações preenchidas antes de editar
     if (this.clienteForm?.valid) {
       const requestEditCliente: EditCliente = {
-        CODIGO: this.clienteForm.value.CODIGO as bigint,
-        nome: this.clienteForm.value.nome as string,
-        sobrenome: this.clienteForm.value.sobrenome as string,
+        codigo: this.clienteForm.getRawValue().codigo as bigint,
+        nomeCompleto: this.clienteForm.value.nomeCompleto as string,
+        status: this.clienteForm.getRawValue().status as string,
+        empresa: this.clienteForm.getRawValue().empresa as number,
+        versao: this.clienteForm.getRawValue().versao as string,
         telefone: this.clienteForm.value.telefone as string,
         email: this.clienteForm.value.email as string,
-        tipoDocumento: JSON.parse(JSON.stringify(this.clienteForm.value.tipoDocumento)).value as string,
+        tipoDocumento: this.clienteForm.value.tipoDocumento as string,
         documento: this.clienteForm.value.documento as string,
         cep: this.clienteForm.value.cep as string,
         logradouro: this.clienteForm.value.logradouro as string,
-        numero: this.clienteForm.value.numero as string,
+        numero: this.clienteForm.value.numero as number,
         bairro: this.clienteForm.value.bairro as string,
         municipio: this.clienteForm.value.municipio as string,
-        estado: this.clienteForm.value.estado as string,
+        uf: this.clienteForm.value.uf as Uf,
         complemento: this.clienteForm.value.complemento as string,
       };
 
@@ -541,17 +558,23 @@ export class ClienteComponent implements OnInit {
     }
   }
 
+  getDocumentoMask(): string {
+    const tipo = this.clienteForm.get('tipoDocumento')?.value;
+    return tipo === 'CPF' ? '999.999.999-99' :
+      tipo === 'CNPJ' ? '99.999.999/9999-99' : '';
+  }
+
   /**
    * Desativa um cliente com o código fornecido.
    *
-   * @param {bigint} CODIGO - Código do cliente a ser desativado.
+   * @param {bigint} codigo - Código do cliente a ser desativado.
    * @returns {void}
    */
-  desativarCliente(CODIGO: bigint): void {
-    console.log('Alterar o Status!:', CODIGO);
-    if (CODIGO) {
+  desativarCliente(codigo: bigint): void {
+    console.log('Alterar o Status!:', codigo);
+    if (codigo) {
       this.clienteService
-        .desativarCliente(CODIGO)
+        .desativarCliente(codigo)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -563,8 +586,8 @@ export class ClienteComponent implements OnInit {
                 detail: 'Status Alterado com sucesso!',
                 life: 3000,
               });
-              this.listarClientes();
             }
+            this.listarClientes();
           },
           error: (error) => {
             console.error('Erro ao Alterar o Status!:', error);

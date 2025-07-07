@@ -1,7 +1,10 @@
+import { Tipo } from "src/app/models/enums/users/Tipo.enum";
+
 export interface Usuarios {
-  CODIGO: bigint;
-  nome: string;
-  sobrenome: string;
+  codigo: bigint;
+  dataCadastro:string;
+  nomeCompleto: string;
+  tipo:Tipo,
   telefone:string;
   email: string;
   documento:string;

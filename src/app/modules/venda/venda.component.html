@@ -1,266 +1,131 @@
-<div class="card flex justify-content-center gap-2">
-  <p-toast></p-toast>
-  <p-confirmDialog
-    header="Título do Diálogo"
-    icon="pi pi-exclamation-triangle"
-    [acceptLabel]="'OK'"
-    [rejectVisible]="false"
-    [closable]="false"
-  ></p-confirmDialog>
+<div class="pdv-container">
+  <!-- Coluna Esquerda - Ações -->
+  <div class="pdv-actions">
+    <button pButton label="🔍 Buscar Produto" class="p-button-primary p-mb-2" (click)="buscarProduto()"></button>
+    <button pButton label="👤 Cliente" class="p-button-primary p-mb-2" (click)="mostrarTelaCliente()"></button>
+    <button pButton label="% Desconto Total" class="p-button-primary p-mb-2" (click)="mostrarTelaDesconto()"></button>
+    <button pButton label="❌ Cancelar Venda" class="p-button-primary p-mb-2" (click)="cancelarVenda()"></button>
+  </div>
+
+  <!-- Coluna Direita - Venda -->
+  <div class="pdv-venda">
+
+    <!-- Tabela de Produtos -->
+    <p-table [value]="produtos" [scrollable]="true" scrollHeight="300px">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Cód.</th>
+          <th>Descrição</th>
+          <th>Quant.</th>
+          <th>Unitário</th>
+          <th>Total</th>
+          <th>Ações</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-produto>
+        <tr>
+          <td>{{ produto.codigo }}</td>
+          <td>{{ produto.descricao }}</td>
+          <td>{{ produto.quantidade }}</td>
+          <td>R$ {{ produto.precoVenda | number: '1.2-2' }}</td>
+          <td>R$ {{ (produto.precoVenda*produto.quantidade) | number: '1.2-2' }}</td>
+          <td>
+            <button pButton icon="pi pi-times" class="p-button-danger p-button-sm"
+              (click)="removerProduto(produto.codigo)"></button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+    <p-dialog header="Produtos Cadastrados" [(visible)]="mostrarDialogProdutos" [modal]="true"
+      [style]="{width: '50vw'}">
+      <p-table [value]="catalogo">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Código</th>
+            <th>Descrição</th>
+            <th>Estoque</th>
+            <th>Unitário</th>
+            <th>Ação</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-produto>
+          <tr>
+            <td>{{ produto.codigo }}</td>
+            <td>{{ produto.descricao }}</td>
+            <td>{{ produto.estoque }}</td>
+            <td>R$ {{ produto.precoVenda | number: '1.2-2' }}</td>
+            <td>
+              <button pButton type="button" label="Selecionar" (click)="selecionarProduto(produto)"></button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-dialog>
+    <p-dialog header="Desconto" [(visible)]="mostrarDesconto" [modal]="true">
+      <div class="p-float-label flex flex-column mr-4 mt-4 mb-4">
+        <input pInputText [(ngModel)]="valorDesconto" />
+        <label for="float-label">Desconto(%)</label>
+      </div>
+      <p-button class="mr-2" (onClick)="aplicarDesconto()" type="submit" label="Confirmar"></p-button>
+    </p-dialog>
+    <p-dialog header="Clientes Cadastrados" [(visible)]="mostrarDialogClientes" [modal]="true"
+      [style]="{width: '50vw'}">
+      <p-table [value]="clientes">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Nome Completo</th>
+            <th>Documento</th>
+            <th>Endereço</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-cliente>
+          <tr>
+            <td>{{ cliente.nome + ' ' + cliente.sobrenome }}</td>
+            <td>{{ cliente.documento }}</td>
+            <td>{{ cliente.logradouro + ' - ' + cliente.bairro + ' - ' + cliente.municipio }}</td>
+            <td>
+              <button pButton type="button" label="Selecionar" (click)="selecionarCliente(cliente)"></button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-dialog>
+    <p-dialog header="Parcelamento" [(visible)]="mostrarDialogCartaoPrazo" [modal]="true">
+      <div class="p-float-label flex flex-column mr-4 mt-4 mb-4">
+        <input pInputText [(ngModel)]="parcelas" />
+        <label for="float-label">Parcelas</label>
+      </div>
+      <p-button class="mr-2" (onClick)="cartaoAPrazo()" type="submit" label="Confirmar"></p-button>
+    </p-dialog>
+    <p-dialog header="Quantidade" [(visible)]="mostrarDialogQuantidade" [modal]="true">
+      <div class="p-float-label flex flex-column mr-4 mt-4 mb-4">
+        <input pInputText type="number" [(ngModel)]="quantidade" />
+        <label for="float-label">Quantidade</label>
+      </div>
+      <p-button class="mr-2" (onClick)="quantidadeItem()" type="submit" label="Confirmar"></p-button>
+    </p-dialog>
+
+
+    <!-- Rodapé -->
+    <div class="pdv-footer">
+      <div class="info">
+        {{cliente?.tipoDocumento || "CPF"}}: {{ cliente?.documento || "Não identificado" }} | Cliente: {{cliente?.nomeCompleto || "Cliente não identificado"}}
+      </div>
+      <div>
+        Desconto aplicado: R$ {{ descontoAplicado | number: '1.2-2' }}
+      </div>
+      <div class="total">
+        Total a pagar: R$ {{ total | number: '1.2-2' }}
+      </div>
+    </div>
+
+    <!-- Botões de Pagamento -->
+    <div class="pdv-pagamento">
+      <button pButton label="💵 Pix" class="p-button-secondary" (click)="pix()"></button>
+      <button pButton label="💵 Dinheiro" class="p-button-secondary" (click)="dinheiro()"></button>
+      <button pButton label="💳 Cartão Débito" class="p-button-secondary" (click)="cartaoDebito()"></button>
+      <button pButton label="💳 Cartão Crédito à vista" class="p-button-secondary" (click)="cartaoCreditoAVista()"></button>
+      <button pButton label="💳 Cartão Crédito parcelado" class="p-button-secondary" (click)="mostrarTelaCartaoPrazo()"></button>
+    </div>
+  </div>
 </div>
-
-<app-toolbar-navigation></app-toolbar-navigation>
-
-<div>
-  <div class="grid">
-    <div class="col-12">
-      <p-card header="Vendas" styleClass="shadow-3 m-1 text-indigo-800">
-        <!--TABELA DE VENDAS-->
-        <div *ngIf="!showForm" class="grid">
-          <div class="col-12">
-            <div class="flex justify-content-end"></div>
-            <p-table
-              #tabelaVenda
-              [columns]="colunasSelecionadas"
-              [value]="vendaDatas"
-              [(selection)]="vendaSelecionada"
-              (onRowSelect)="onRowSelect($event)"
-              selectionMode="multiple"
-              [rows]="5"
-              [paginator]="true"
-              [responsive]="true"
-              [resizableColumns]="true"
-              columnResizeMode="expand"
-              styleClass="p-datatable-gridlines"
-              [tableStyle]="{ 'min-width': '50rem' }"
-              [rowHover]="true"
-              [showCurrentPageReport]="true"
-              [rowsPerPageOptions]="[5, 10, 25, 50, 100]"
-              [globalFilterFields]="[
-                'CODIGO',
-                'status',
-                'descricao',
-                'estoque',
-                'valor'
-              ]"
-              [exportHeader]="'customExportHeader'"
-              dataKey="CODIGO"
-              currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
-              [filterDelay]="0"
-            >
-              <ng-template pTemplate="caption">
-                <div class="flex">
-                  <div class="mr-5">
-                    <button
-                      type="button"
-                      class="mr-2"
-                      pButton
-                      pRipple
-                      icon="pi pi-plus"
-                      pTooltip="Nova Venda"
-                      (click)="onAddButtonClick()"
-                    >
-                      Adicionar
-                    </button>
-                    <!-- <button
-                      pButton
-                      pRipple
-                      icon="pi pi-ban"
-                      class="p-button-danger"
-                      (click)="desativarProdutosSelecionados()"
-                      [disabled]="
-                        !produtoSelecionado || !produtoSelecionado.length
-                      "
-                    ></button> -->
-                  </div>
-
-                  <div class="flex justify-content-center mr-5">
-                    <button
-                      type="button"
-                      pButton
-                      pRipple
-                      icon="pi pi-file"
-                      (click)="tabelaVenda.exportCSV()"
-                      class="mr-2"
-                      pTooltip="CSV - Exportar os dados da tabela com formato csv."
-                      tooltipPosition="bottom"
-                    ></button>
-                    <button
-                      type="button"
-                      pButton
-                      pRipple
-                      icon="pi pi-file-excel"
-                      (click)="exportExcel()"
-                      class="p-button-success mr-2"
-                      pTooltip="XLS - Exportar os dados da tabela com formato xls."
-                      tooltipPosition="bottom"
-                    ></button>
-                    <button
-                      type="button"
-                      pButton
-                      pRipple
-                      icon="pi pi-file-pdf"
-                      (click)="exportPdf()"
-                      class="p-button-warning mr-2"
-                      pTooltip="PDF - Exportar os dados da tabela com formato pdf."
-                      tooltipPosition="bottom"
-                    ></button>
-                  </div>
-
-                  <p-multiSelect
-                    pTooltip="Desmarque as colunas que serão ocultadas"
-                    [options]="cols"
-                    [(ngModel)]="colunasSelecionadas"
-                    optionLabel="header"
-                    selectedItemsLabel="Ocultar Colunas"
-                    [style]="{ 'min-width': '200px' }"
-                    placeholder="Selecione as Colunas"
-                  >
-                  </p-multiSelect>
-
-                  <span class="p-input-icon-left ml-auto mr-2">
-                    <i class="pi pi-search"></i>
-                    <input
-                      pInputText
-                      type="text"
-                      [(ngModel)]="valorPesquisa"
-                      (input)="applyFilterGlobal($event, 'contains')"
-                      placeholder="Pesquisar"
-                    />
-                  </span>
-                  <button
-                    pButton
-                    label="Limpar"
-                    class="p-button-outlined"
-                    icon="pi pi-filter-slash"
-                    (click)="clear(tabelaVenda)"
-                  ></button>
-                </div>
-              </ng-template>
-
-              <ng-template pTemplate="header" let-columns>
-                <tr>
-                  <th style="width: 3rem">Editar/Cancelar</th>
-                  <!-- <th style="width: 4rem">
-                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
-                  </th> -->
-                  <th
-                    pResizableColumn
-                    pSortableColumn="CODIGO"
-                    style="width: 3rem"
-                  >
-                    <div
-                      class="flex justify-content-between align-items-center"
-                    >
-                      <div
-                        class="flex justify-content-between align-items-center"
-                      >
-                        ID
-                      </div>
-                      <div
-                        class="flex justify-content-between align-items-center"
-                      >
-                        <p-sortIcon field="CODIGO"></p-sortIcon>
-                        <p-columnFilter
-                          type="text"
-                          field="CODIGO"
-                          display="menu"
-                          matchMode="contains"
-                          [showMatchModes]="true"
-                          [showOperator]="false"
-                          [showAddButton]="true"
-                        ></p-columnFilter>
-                      </div>
-                    </div>
-                  </th>
-                  <th
-                    *ngFor="let col of columns"
-                    pResizableColumn
-                    [pSortableColumn]="col.field"
-                  >
-                    <div
-                      class="flex justify-content-between align-items-center"
-                    >
-                      <div
-                        class="flex justify-content-between align-items-center"
-                      >
-                        {{ col.header }}
-                      </div>
-                      <div
-                        class="flex justify-content-between align-items-center"
-                      >
-                        <p-sortIcon field="{{ col.field }}"></p-sortIcon>
-                        <p-columnFilter
-                          type="text"
-                          [field]="col.field"
-                          display="menu"
-                          matchMode="contains"
-                          [showMatchModes]="true"
-                          [showOperator]="false"
-                          [showAddButton]="true"
-                        ></p-columnFilter>
-                      </div>
-                    </div>
-                  </th>
-                </tr>
-              </ng-template>
-
-              <ng-template pTemplate="body" let-venda let-columns="columns">
-                <tr>
-                  <td>
-                    <div
-                      class="flex justify-content-center gap-2 align-content-center align-items-center"
-                    >
-                      <button
-                        pButton
-                        pRipple
-                        class="p-button-rounded p-button-text"
-                        icon="pi pi-pencil"
-                        pTooltip="Editar Venda"
-                        (click)="onEditButtonClick(venda)"
-                      ></button>
-                      <button
-                        pButton
-                        pRipple
-                        class="p-button-rounded p-button-text p-button-danger"
-                        icon="pi pi-ban"
-                        pTooltip="Cancelar Venda"
-                        (click)="onDisableButtonClick(venda)"
-                      ></button>
-                    </div>
-                  </td>
-                  <!-- <td>
-                    <p-tableCheckbox [value]="venda"></p-tableCheckbox>
-                  </td> -->
-                  <td>{{ venda.CODIGO }}</td>
-                  <ng-container *ngFor="let col of columns">
-                    <td *ngIf="col.field !== 'status'; else statusColumn">
-                      {{ venda[col.field] }}
-                    </td>
-                    <ng-template #statusColumn>
-                      <td>
-                        <p-tag
-                          [value]="venda.status"
-                          [severity]="getSeverity(venda.status)"
-                        ></p-tag>
-                      </td>
-                    </ng-template>
-                  </ng-container>
-                </tr>
-              </ng-template>
-
-              <ng-template pTemplate="summary">
-                <div class="text-center">
-                  Total de {{ vendaDatas ? vendaDatas.length : 0 }} Vendas
-                  Cadastradas.
-                </div>
-              </ng-template>
-
-              <ng-template pTemplate="emptymessage">
-                <tr>
-                  <td colspan="8">Nenhum informação foi encontrada.</td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </div>
-        </div>

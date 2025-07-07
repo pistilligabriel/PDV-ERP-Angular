@@ -1,19 +1,34 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { format } from 'date-fns';
+import * as FileSaver from 'file-saver';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
-import { Usuarios } from 'src/app/models/interfaces/usuario/response/UsuariosResponse';
-import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
-import * as FileSaver from 'file-saver';
+import { Tipo } from 'src/app/models/enums/users/Tipo.enum';
 import { Column } from 'src/app/models/interfaces/Column';
 import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
-import { format } from 'date-fns';
-import { GrupoUsuarios } from 'src/app/models/interfaces/usuario/grupo/response/GrupoUsuariosResponse';
-import { CarregarEditarUsuario } from 'src/app/models/interfaces/usuario/CarregarEditarUsuario';
 import { AdicionarUsuario } from 'src/app/models/interfaces/usuario/AdicionarUsuario';
 import { EditarUsuario } from 'src/app/models/interfaces/usuario/EditarUsuario';
+import { GrupoUsuarios } from 'src/app/models/interfaces/usuario/grupo/response/GrupoUsuariosResponse';
+import { Usuarios } from 'src/app/models/interfaces/usuario/response/UsuariosResponse';
+import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
+
+export interface  Usuario {
+  codigo: bigint;
+  dataCadastro: string;
+  nomeCompleto: string;
+  tipo:Tipo;
+  telefone: string;
+  email: string;
+  documento: string;
+  login: string;
+  password: string;
+  status: string;
+  empresa: number;
+  versao: string;
+}
 
 @Component({
   selector: 'app-usuario',
@@ -21,6 +36,7 @@ import { EditarUsuario } from 'src/app/models/interfaces/usuario/EditarUsuario';
   styleUrls: []
 })
 export class UsuarioComponent implements OnInit, OnDestroy {
+
   private destroy$: Subject<void> = new Subject<void>();
 
   @ViewChild('tabelaUsuario') tabelaUsuario: Table | undefined;
@@ -37,9 +53,9 @@ export class UsuarioComponent implements OnInit, OnDestroy {
 
   public userGroupDatas: Array<GrupoUsuarios> = [];
 
-    /**
-   * Grupo de usuário selecionado.
-   */
+  /**
+ * Grupo de usuário selecionado.
+ */
   public userSelected!: Usuarios[] | null;
 
   public userGroupSelected!: GrupoUsuarios[];
@@ -66,6 +82,11 @@ export class UsuarioComponent implements OnInit, OnDestroy {
     table.clear();
   }
 
+  atualizarTabela() {
+    this.valorPesquisa = "";
+    this.listarUsuarios();
+  }
+
   cols!: Column[];
 
   colunasSelecionadas!: Column[];
@@ -79,23 +100,24 @@ export class UsuarioComponent implements OnInit, OnDestroy {
     private router: Router,
     private formBuilderUser: FormBuilder,
     private confirmationService: ConfirmationService,
-  ) {}
+  ) { }
 
 
   /**
    * Formulário reativo para adicionar/editar grupos de usuários.
    */
   public userForm = this.formBuilderUser.group({
-    CODIGO: [null as bigint | null],
-    nome: ['', [Validators.required]],
-    sobrenome: ['', [Validators.required]],
+    codigo: [{ value: null as bigint | null, disabled: true }],
+    nomeCompleto: ['', [Validators.required]],
+    tipo:[{value:'', disabled: true}],
     telefone: ['', [Validators.required]],
     email: ['', [Validators.required]],
-    documento:['', [Validators.required]],
+    documento: ['', [Validators.required]],
     login: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(4)]],
     status: [{ value: '', disabled: true }],
     empresa: [{ value: 1, disabled: true }],
+    dataCadastro: [{ value: null as Date | string | null, disabled: true }],
     versao: [{ value: null as Date | string | null, disabled: true }],
   });
 
@@ -108,11 +130,12 @@ export class UsuarioComponent implements OnInit, OnDestroy {
 
     this.cols = [
       { field: 'status', header: 'Status' },
-      {field:'nome', header: 'Nome'},
+      { field: 'nomeCompleto', header: 'Nome Completo' },
+      { field: 'tipo', header: 'Tipo'},
       { field: 'login', header: 'Login' },
-  ];
+    ];
 
-  this.colunasSelecionadas = this.cols;
+    this.colunasSelecionadas = this.cols;
 
   }
 
@@ -168,12 +191,12 @@ export class UsuarioComponent implements OnInit, OnDestroy {
     );
   }
 
-    /**
-   * Retorna a severidade com base no status fornecido.
-   *
-   * @param {string} status - Status a ser avaliado.
-   * @returns {string} - Severidade correspondente.
-   */
+  /**
+ * Retorna a severidade com base no status fornecido.
+ *
+ * @param {string} status - Status a ser avaliado.
+ * @returns {string} - Severidade correspondente.
+ */
   getSeverity(status: string) {
     switch (status) {
       case 'ATIVO':
@@ -202,21 +225,19 @@ export class UsuarioComponent implements OnInit, OnDestroy {
    * @returns {boolean} - Verdadeiro se estiver em modo de edição, falso caso contrário.
    */
   isEdicao(): boolean {
-    const codigo = this.userForm.value.CODIGO as bigint;
-    this.carregarInformacaoUsuario(codigo)
-    return !!this.userForm.value.CODIGO;
+    return !!this.userForm.getRawValue().codigo;
   }
 
-    /**
-   * Manipulador de eventos para o botão de adição de grupo.
-   * Exibe o formulário de adição de grupo.
-   */
+  /**
+ * Manipulador de eventos para o botão de adição de grupo.
+ * Exibe o formulário de adição de grupo.
+ */
   onAddButtonClick() {
     this.showForm = true;
     this.userForm.setValue({
-      CODIGO: null,
-      nome: null,
-      sobrenome: null,
+      codigo: null,
+      nomeCompleto: null,
+      tipo:null,
       telefone: null,
       email: null,
       documento: null,
@@ -225,14 +246,14 @@ export class UsuarioComponent implements OnInit, OnDestroy {
       status: null,
       empresa: 1,
       versao: null,
+      dataCadastro: null
     });
   }
 
 
 
-  onEditButtonClick(usuario: CarregarEditarUsuario): void {
-    const formattedDate = format(new Date(usuario.versao), 'dd/MM/yyyy HH:mm:ss');
-
+  onEditButtonClick(usuario: Usuario): void {
+    console.log(this.isEdicao())
     if (usuario.status === 'DESATIVADO') {
       this.confirmationService.confirm({
         header: 'Aviso',
@@ -240,15 +261,26 @@ export class UsuarioComponent implements OnInit, OnDestroy {
       });
     } else {
       this.showForm = true;
-      this.userForm.patchValue({
-        CODIGO: usuario.CODIGO,
-        login: usuario.login,
-        password: usuario.password,
-        status: usuario.status,
-        empresa: usuario.empresa,
-        versao: formattedDate,
-      });
+      this.usuarioService.getUsuarioEspecifico(usuario?.codigo).subscribe(user => {
+        this.userForm.patchValue({
+          codigo: user.codigo,
+          nomeCompleto: user.nomeCompleto,
+          tipo:user.tipo,
+          telefone: user.telefone,
+          email: user.email,
+          documento: user.documento,
+          login: user.login,
+          password: user.password,
+          status: user.status,
+          empresa: 1,
+          versao: user.versao,
+          dataCadastro: user.dataCadastro,
+        });
+        console.log(usuario.codigo)
+      })
 
+      this.userForm.get('password')?.setValidators(Validators.minLength(4));
+      this.userForm.get('password')?.updateValueAndValidity();
       console.log(this.isEdicao());
     }
   }
@@ -256,9 +288,9 @@ export class UsuarioComponent implements OnInit, OnDestroy {
 
   onDisableButtonClick(usuario: Usuarios): void {
     this.userForm.patchValue({
-      CODIGO: usuario.CODIGO,
+      codigo: usuario.codigo,
     });
-    this.desativarUsuario(usuario.CODIGO as bigint);
+    this.desativarUsuario(usuario.codigo as bigint);
   }
 
 
@@ -276,36 +308,13 @@ export class UsuarioComponent implements OnInit, OnDestroy {
   }
 
 
-    /**
-   * Cancela o formulário de adição/editação e limpa os campos.
-   */
+  /**
+ * Cancela o formulário de adição/editação e limpa os campos.
+ */
   cancelarFormulario() {
     this.userForm.reset();
     this.showForm = false;
     this.listarUsuarios();
-  }
-
-
-  carregarInformacaoUsuario(CODIGO: bigint){
-    this.usuarioService.getUsuarioEspecifico(CODIGO).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (response) => {
-        if (response) {
-          this.userForm.patchValue({
-            CODIGO: response.CODIGO,
-            nome: response.nome,
-            sobrenome: response.sobrenome,
-            telefone: response.telefone,
-            email: response.email,
-            documento: response.documento,
-            login: response.login,
-            password: response.password,
-            status: response.status,
-            empresa: response.empresa,
-            versao: response.versao,
-          });
-        }}, error: (error) => {
-          console.log(error);
-      }})
   }
 
   /**
@@ -329,7 +338,6 @@ export class UsuarioComponent implements OnInit, OnDestroy {
             detail: error.message,
             life: 3000,
           });
-          this.router.navigate(['/home']);
         },
       });
   }
@@ -354,14 +362,13 @@ export class UsuarioComponent implements OnInit, OnDestroy {
   adicionarUsuario(): void {
     if (this.userForm.valid) {
       const requestCreateUser: AdicionarUsuario = {
-        nome: this.userForm.value.nome as string,
-        sobrenome: this.userForm.value.sobrenome as string,
+        nomeCompleto: this.userForm.value.nomeCompleto as string,
         telefone: this.userForm.value.telefone as string,
         email: this.userForm.value.email as string,
         documento: this.userForm.value.documento as string,
         login: this.userForm.value.login as string,
         password: this.userForm.value.password as string,
-        empresa: this.userForm.getRawValue().empresa as number,
+        empresa: 1,
       };
 
       this.usuarioService
@@ -387,7 +394,7 @@ export class UsuarioComponent implements OnInit, OnDestroy {
             this.listarUsuarios();
           },
           error: (error) => {
-            console.error('Erro ao cadastrarusuário:', error);
+            console.error('Erro ao cadastrar usuário:', error);
             this.messageService.add({
               severity: 'error',
               summary: 'Erro',
@@ -412,14 +419,12 @@ export class UsuarioComponent implements OnInit, OnDestroy {
    * Edita um usuário existente.
    */
   editarUsuario(): void {
-    const codigo = this.userForm.value.CODIGO as bigint;
-    this.carregarInformacaoUsuario(codigo)
 
     if (this.userForm?.valid) {
       const requestEditUser: EditarUsuario = {
-        CODIGO: this.userForm.value.CODIGO as bigint,
-        nome: this.userForm.value.nome as string,
-        sobrenome: this.userForm.value.sobrenome as string,
+        codigo: this.userForm.value.codigo as bigint,
+        nomeCompleto: this.userForm.value.nomeCompleto as string,
+        tipo:this.userForm.value.tipo as Tipo,
         telefone: this.userForm.value.telefone as string,
         email: this.userForm.value.email as string,
         documento: this.userForm.value.documento as string,
@@ -473,14 +478,14 @@ export class UsuarioComponent implements OnInit, OnDestroy {
   /**
    * Desativa um usuário com o código fornecido.
    *
-   * @param {bigint} CODIGO - Código do usuário a ser desativado.
+   * @param {bigint} codigo - Código do usuário a ser desativado.
    * @returns {void}
    */
-  desativarUsuario(CODIGO: bigint): void {
-    console.log('Alterar o Status!:', CODIGO);
-    if (CODIGO) {
+  desativarUsuario(codigo: bigint): void {
+    console.log('Status alterado, usuário: ', codigo);
+    if (codigo) {
       this.usuarioService
-        .desativarUsuario(CODIGO)
+        .desativarUsuario(codigo)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
@@ -492,8 +497,8 @@ export class UsuarioComponent implements OnInit, OnDestroy {
                 detail: 'Status Alterado com sucesso!',
                 life: 3000,
               });
-              this.listarUsuarios();
             }
+            this.listarUsuarios();
           },
           error: (error) => {
             console.error('Erro ao Alterar o Status!:', error);

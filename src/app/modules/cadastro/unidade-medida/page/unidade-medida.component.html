@@ -1,0 +1,332 @@
+<div class="card flex justify-content-center gap-2">
+  <p-toast></p-toast>
+  <p-confirmDialog
+    header="Título do Diálogo"
+    icon="pi pi-exclamation-triangle"
+    [acceptLabel]="'OK'"
+    [rejectVisible]="false"
+    [closable]="false"
+  ></p-confirmDialog>
+</div>
+
+<app-toolbar-navigation></app-toolbar-navigation>
+
+<div>
+  <div class="grid">
+    <div class="col-12">
+      <p-card header="Unidade Medida" styleClass="shadow-3 m-1 text-indigo-800">
+        <!--TABELA DE UNIDADE MEDIDAS-->
+        <div *ngIf="!showForm" class="grid">
+          <div class="col-12">
+            <div class="flex justify-content-end"></div>
+            <p-table
+              #tabelaUnidadeMedida
+              [columns]="colunasSelecionadas"
+              [value]="unidadeDatas"
+              [(selection)]="unidade"
+              (onRowSelect)="onRowSelect($event)"
+              selectionMode="single"
+              [rows]="5"
+              [paginator]="true"
+              [responsive]="true"
+              [resizableColumns]="true"
+              columnResizeMode="fit"
+              styleClass="p-datatable-gridlines"
+              [tableStyle]="{ 'min-width': '50rem' }"
+              [rowHover]="true"
+              [showCurrentPageReport]="true"
+              [rowsPerPageOptions]="[5, 10, 25, 50, 100]"
+              [globalFilterFields]="[
+                'codigo',
+                'status',
+                'descricao',
+                'simbolo'
+              ]"
+              [exportHeader]="'customExportHeader'"
+              dataKey="codigo"
+              currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
+              [filterDelay]="0"
+            >
+              <ng-template pTemplate="caption">
+                <div class="flex">
+                  <div class="mr-5">
+                    <button
+                      type="button"
+                      class="mr-2"
+                      pButton
+                      pRipple
+                      icon="pi pi-plus"
+                      pTooltip="Adicionar Unidade Medida"
+                      (click)="onAddButtonClick()"
+                    >
+                      Adicionar
+                    </button>
+                    <!-- <button
+                      pButton
+                      pRipple
+                      icon="pi pi-ban"
+                      class="p-button-danger"
+                      (click)="disableSelectedUsers()"
+                      [disabled]="!unidadeSelected || !unidadeSelected.length"
+                    ></button> -->
+                  </div>
+
+                  <div class="flex justify-content-center mr-5">
+                    <button
+                      type="button"
+                      pButton
+                      pRipple
+                      icon="pi pi-file"
+                      (click)="tabelaUnidadeMedida.exportCSV()"
+                      class="mr-2"
+                      pTooltip="CSV - Exportar os dados da tabela com formato csv."
+                      tooltipPosition="bottom"
+                    ></button>
+                    <button
+                      type="button"
+                      pButton
+                      pRipple
+                      icon="pi pi-file-excel"
+                      (click)="exportExcel()"
+                      class="p-button-success mr-2"
+                      pTooltip="XLS - Exportar os dados da tabela com formato xls."
+                      tooltipPosition="bottom"
+                    ></button>
+                    <button
+                      type="button"
+                      pButton
+                      pRipple
+                      icon="pi pi-file-pdf"
+                      (click)="exportPdf()"
+                      class="p-button-warning mr-2"
+                      pTooltip="PDF - Exportar os dados da tabela com formato pdf."
+                      tooltipPosition="bottom"
+                    ></button>
+                  </div>
+
+                  <p-multiSelect
+                    pTooltip="Desmarque as colunas que serão ocultadas"
+                    [options]="cols"
+                    [(ngModel)]="colunasSelecionadas"
+                    optionLabel="header"
+                    selectedItemsLabel="Ocultar Colunas"
+                    [style]="{ 'min-width': '200px' }"
+                    placeholder="Selecione as Colunas"
+                  >
+                  </p-multiSelect>
+
+                  <span class="p-input-icon-left ml-auto mr-2">
+                    <i class="pi pi-search"></i>
+                    <input
+                      pInputText
+                      type="text"
+                      [(ngModel)]="valorPesquisa"
+                      (input)="applyFilterGlobal($event, 'contains')"
+                      placeholder="Pesquisar"
+                    />
+                  </span>
+                  <button
+                    pButton
+                    label="Limpar"
+                    class="p-button-outlined"
+                    icon="pi pi-filter-slash"
+                    (click)="clear(tabelaUnidadeMedida)"
+                  ></button>
+                   <button pButton class="p-button-outlined ml-3" icon="pi pi-refresh"
+                    (click)="atualizarTabela()"></button>
+                </div>
+              </ng-template>
+
+              <ng-template pTemplate="header" let-columns>
+                <tr>
+                  <th style="width: 3rem">Editar/Desativar</th>
+                  <!-- <th style="width: 4rem">
+                    <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+                  </th> -->
+                  <th
+                    pResizableColumn
+                    pSortableColumn="codigo"
+                    style="width: 3rem"
+                  >
+                    <div
+                      class="flex justify-content-between align-items-center"
+                    >
+                      <div
+                        class="flex justify-content-between align-items-center"
+                      >
+                        Código
+                      </div>
+                      <div
+                        class="flex justify-content-between align-items-center"
+                      >
+                        <p-sortIcon field="codigo"></p-sortIcon>
+                        <p-columnFilter
+                          type="text"
+                          field="codigo"
+                          display="menu"
+                          matchMode="contains"
+                          [showMatchModes]="true"
+                          [showOperator]="false"
+                          [showAddButton]="true"
+                        ></p-columnFilter>
+                      </div>
+                    </div>
+                  </th>
+                  <th
+                    *ngFor="let col of columns"
+                    pResizableColumn
+                    [pSortableColumn]="col.field"
+                  >
+                    <div
+                      class="flex justify-content-between align-items-center"
+                    >
+                      <div
+                        class="flex justify-content-between align-items-center"
+                      >
+                        {{ col.header }}
+                      </div>
+                      <div
+                        class="flex justify-content-between align-items-center"
+                      >
+                        <p-sortIcon field="{{ col.field }}"></p-sortIcon>
+                        <p-columnFilter
+                          type="text"
+                          [field]="col.field"
+                          display="menu"
+                          matchMode="contains"
+                          [showMatchModes]="true"
+                          [showOperator]="false"
+                          [showAddButton]="true"
+                        ></p-columnFilter>
+                      </div>
+                    </div>
+                  </th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-unidadeMedida let-columns="columns">
+                <tr>
+                  <td>
+                    <div
+                      class="flex justify-content-center gap-2 align-content-center align-items-center"
+                    >
+                      <button
+                        pButton
+                        pRipple
+                        class="p-button-rounded p-button-text"
+                        icon="pi pi-pencil"
+                        pTooltip="Editar Unidade Medida"
+                        (click)="onEditButtonClick(unidadeMedida)"
+                      ></button>
+                      <button
+                        pButton
+                        pRipple
+                        class="p-button-rounded p-button-text p-button-danger"
+                        icon="pi pi-ban"
+                        pTooltip="Alterar Status Unidade Medida"
+                        (click)="onDisableButtonClick(unidadeMedida)"
+                      ></button>
+                    </div>
+                  </td>
+                  <!-- <td>
+                    <p-tableCheckbox [value]="user"></p-tableCheckbox>
+                  </td> -->
+                  <td>{{ unidadeMedida.codigo }}</td>
+                  <ng-container *ngFor="let col of columns">
+                    <td *ngIf="col.field !== 'status'; else statusColumn">
+                      {{ unidadeMedida[col.field] }}
+                    </td>
+                    <ng-template #statusColumn>
+                      <td>
+                        <p-tag
+                          [value]="unidadeMedida.status"
+                          [severity]="getSeverity(unidadeMedida.status)"
+                        ></p-tag>
+                      </td>
+                    </ng-template>
+                  </ng-container>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="summary">
+                <div class="text-center">
+                  Total de {{ unidadeDatas ? unidadeDatas.length : 0 }} Unidades
+                  Cadastradas.
+                </div>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="8">Nenhum informação foi encontrada.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+
+        <!--FORMULARIO DE USUARIOS-->
+        <div *ngIf="showForm" class="mt-2">
+          <div class="gap-4">
+            <form [formGroup]="unidadeForm" (ngSubmit)="adicionarOuEditarUnidade()">
+              <div class="card flex flex-column md:flex-column gap-4">
+                <div class="flex flex-row">
+
+                  <div class="flex flex-column mr-2">
+                    <label for="label">Código</label>
+                    <input pInputText formControlName="codigo">
+                  </div>
+                  
+                  <div class="flex flex-column mr-2">
+                    <label for="label">Status</label>
+                    <input pInputText formControlName="status" />
+                  </div>
+
+                  <div class="flex flex-column mr-2">
+                    <label for="label">Empresa</label>
+                    <input pInputText formControlName="empresa" />
+                  </div>
+
+                  <div class="flex flex-column mr-2">
+                    <label for="label">Versão</label>
+                    <input pInputText type="text" formControlName="versao" />
+                  </div>
+                </div>
+
+                <div class="p-float-label flex flex-column mr-4">
+                  <input pInputText formControlName="descricao"  style="width: 500px;"/>
+                  <label for="float-label">Descrição</label>
+                </div>
+
+                <div class="p-float-label flex flex-column mr-4">
+                  <input pInputText type="text" formControlName="simbolo" style="width: 500px;"/>
+                  <label for="float-label">Símbolo</label>
+                </div>
+              </div>
+            </form>
+
+            <div class="mt-2">
+              <div class="card flex flex-column md:flex-column gap-4">
+                <div
+                  class="flex flex-row justify-content-left align-content-center align-itens-center m-1"
+                >
+                  <p-button
+                    class="mr-2"
+                    (onClick)="adicionarOuEditarUnidade()"
+                    [disabled]="!unidadeForm.valid"
+                    type="submit"
+                    label="Confirmar"
+                  ></p-button>
+                  <p-button
+                    type="submit"
+                    label="Cancelar"
+                    styleClass="red-button"
+                    (onClick)="cancelarFormulario()"
+                  ></p-button>
+                </div>
+              </div>
+            </div>
+          </div></div
+      ></p-card>
+    </div>
+  </div>
+</div>

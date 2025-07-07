@@ -27,8 +27,8 @@ getAllCliente():Observable<Array<Clientes>>{
   return this.http.get<Array<Clientes>>(`${this.API_URL}/clientes`, this.httpOptions);
 }
 
-getCliente(CODIGO:bigint):Observable<Array<Clientes>>{
-  return this.http.get<Array<Clientes>>(`${this.API_URL}/clientes/${CODIGO}`, this.httpOptions);
+getCliente(CODIGO:bigint):Observable<Clientes>{
+  return this.http.get<Clientes>(`${this.API_URL}/clientes/${CODIGO}`, this.httpOptions);
 }
 
 addCliente(requestDatas: AddCliente): Observable<Array<Clientes>>{

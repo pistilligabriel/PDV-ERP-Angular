@@ -1,0 +1,36 @@
+<app-toolbar-navigation></app-toolbar-navigation>
+
+
+<div class="grid" [style]="{'height': '88vh'}">
+    <div class="col-12">
+        <p-card header="Configurações" styleClass="shadow-3 m-5 text-indigo-800">
+        <div class="mt-2">
+            <div class="gap-4">
+                <form [formGroup]="configForm">
+                    <div class="card flex flex-column md:flex-column gap-4">
+                        <div class="flex flex-column mr-2">
+                            <label for="label">Nome Empresa</label>
+                            <input [(ngModel)]="nomeEmpresa" pInputText formControlName="nomeEmpresa" />
+                        </div>
+                        <div class="flex flex-column mr-2">
+                            <label for="label">Logo</label>
+                            <br>
+                            <p-fileUpload name="logo" [customUpload]="true" accept="image/*" [maxFileSize]="1000000"
+                                mode="basic" chooseLabel="Escolher Imagem" chooseIcon="pi pi-upload"
+                                (onSelect)="onLogoUpload($event)">
+                            </p-fileUpload>
+                        </div>
+                        <!-- Mostrar imagem após upload -->
+                        <div *ngIf="configForm.value.logo" class="mt-3">
+                            <img [src]="configForm.value.logo" alt="Logo da empresa" width="150"
+                                style="border-radius: 8px;" />
+                        </div>
+                    </div>
+                    <div class="flex justify-content-end mt-4">
+                        <button pButton type="button" label="Salvar Configurações" icon="pi pi-save"
+                            (click)="salvarConfiguracoes()"></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        </p-card>
