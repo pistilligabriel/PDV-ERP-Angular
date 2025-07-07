@@ -72,6 +72,13 @@ const routes: Routes = [
         (m) => m.ModuloVendasModule
       ),
   },
+  {
+    path: 'configuracoes',
+    loadChildren: () =>
+      import('./modules/configuracoes/configuracoes.module').then(
+        (m) => m.ConfigModule
+      ),
+  },
   { path: '**', component: PageNotFoundComponent },
 ];
 

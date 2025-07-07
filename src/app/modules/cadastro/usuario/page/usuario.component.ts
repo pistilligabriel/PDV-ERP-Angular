@@ -6,6 +6,7 @@ import * as FileSaver from 'file-saver';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
+import { Tipo } from 'src/app/models/enums/users/Tipo.enum';
 import { Column } from 'src/app/models/interfaces/Column';
 import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
 import { AdicionarUsuario } from 'src/app/models/interfaces/usuario/AdicionarUsuario';
@@ -14,11 +15,11 @@ import { GrupoUsuarios } from 'src/app/models/interfaces/usuario/grupo/response/
 import { Usuarios } from 'src/app/models/interfaces/usuario/response/UsuariosResponse';
 import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
 
-export interface Usuario {
+export interface  Usuario {
   codigo: bigint;
   dataCadastro: string;
-  nome: string;
-  sobrenome: string;
+  nomeCompleto: string;
+  tipo:Tipo;
   telefone: string;
   email: string;
   documento: string;
@@ -107,8 +108,8 @@ export class UsuarioComponent implements OnInit, OnDestroy {
    */
   public userForm = this.formBuilderUser.group({
     codigo: [{ value: null as bigint | null, disabled: true }],
-    nome: ['', [Validators.required]],
-    sobrenome: ['', [Validators.required]],
+    nomeCompleto: ['', [Validators.required]],
+    tipo:[{value:'', disabled: true}],
     telefone: ['', [Validators.required]],
     email: ['', [Validators.required]],
     documento: ['', [Validators.required]],
@@ -129,8 +130,8 @@ export class UsuarioComponent implements OnInit, OnDestroy {
 
     this.cols = [
       { field: 'status', header: 'Status' },
-      { field: 'nome', header: 'Nome' },
-      { field: 'sobrenome', header: 'Sobrenome' },
+      { field: 'nomeCompleto', header: 'Nome Completo' },
+      { field: 'tipo', header: 'Tipo'},
       { field: 'login', header: 'Login' },
     ];
 
@@ -235,8 +236,8 @@ export class UsuarioComponent implements OnInit, OnDestroy {
     this.showForm = true;
     this.userForm.setValue({
       codigo: null,
-      nome: null,
-      sobrenome: null,
+      nomeCompleto: null,
+      tipo:null,
       telefone: null,
       email: null,
       documento: null,
@@ -263,8 +264,8 @@ export class UsuarioComponent implements OnInit, OnDestroy {
       this.usuarioService.getUsuarioEspecifico(usuario?.codigo).subscribe(user => {
         this.userForm.patchValue({
           codigo: user.codigo,
-          nome: user.nome,
-          sobrenome: user.sobrenome,
+          nomeCompleto: user.nomeCompleto,
+          tipo:user.tipo,
           telefone: user.telefone,
           email: user.email,
           documento: user.documento,
@@ -337,7 +338,6 @@ export class UsuarioComponent implements OnInit, OnDestroy {
             detail: error.message,
             life: 3000,
           });
-          this.router.navigate(['/home']);
         },
       });
   }
@@ -362,8 +362,7 @@ export class UsuarioComponent implements OnInit, OnDestroy {
   adicionarUsuario(): void {
     if (this.userForm.valid) {
       const requestCreateUser: AdicionarUsuario = {
-        nome: this.userForm.value.nome as string,
-        sobrenome: this.userForm.value.sobrenome as string,
+        nomeCompleto: this.userForm.value.nomeCompleto as string,
         telefone: this.userForm.value.telefone as string,
         email: this.userForm.value.email as string,
         documento: this.userForm.value.documento as string,
@@ -424,8 +423,8 @@ export class UsuarioComponent implements OnInit, OnDestroy {
     if (this.userForm?.valid) {
       const requestEditUser: EditarUsuario = {
         codigo: this.userForm.value.codigo as bigint,
-        nome: this.userForm.value.nome as string,
-        sobrenome: this.userForm.value.sobrenome as string,
+        nomeCompleto: this.userForm.value.nomeCompleto as string,
+        tipo:this.userForm.value.tipo as Tipo,
         telefone: this.userForm.value.telefone as string,
         email: this.userForm.value.email as string,
         documento: this.userForm.value.documento as string,

@@ -223,7 +223,7 @@
                         pRipple
                         class="p-button-rounded p-button-text p-button-danger"
                         icon="pi pi-ban"
-                        pTooltip="Desativar Marca"
+                        pTooltip="Alterar Status Marca"
                         (click)="onDisableButtonClick(marca)"
                       ></button>
                     </div>
@@ -270,6 +270,11 @@
             <form [formGroup]="marcaForm" (ngSubmit)="adicionarOuEditarMarca()">
               <div class="card flex flex-column md:flex-column gap-4">
                 <div class="flex flex-row">
+
+                   <div class="flex flex-column mr-2">
+                        <label for="label">Código</label>
+                        <input pInputText formControlName="codigo" />
+                    </div>
                   <div class="flex flex-column mr-2">
                     <label for="label">Status</label>
                     <input pInputText formControlName="status" />

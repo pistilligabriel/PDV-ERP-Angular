@@ -111,7 +111,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
    * Formulário reativo para adicionar/editar grupos de usuários.
    */
   public unidadeForm = this.formBuilderUser.group({
-    codigo: [null as bigint | null],
+    codigo: [{value: null as bigint | null, disabled: true}],
     descricao: ['', [Validators.required]],
     simbolo: ['', [Validators.required]],
     status: [{ value: '', disabled: true }],

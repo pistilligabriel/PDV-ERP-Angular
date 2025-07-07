@@ -27,6 +27,7 @@ import { MessagesModule } from 'primeng/messages';
 import { TabPanel, TabViewModule } from 'primeng/tabview';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { DialogModule } from 'primeng/dialog';
+import { FileUploadModule } from 'primeng/fileupload';
 
 
 
@@ -62,7 +63,8 @@ import { DialogModule } from 'primeng/dialog';
     MessagesModule,
     TabViewModule,
     SelectButtonModule,
-    DialogModule
+    DialogModule,
+    FileUploadModule
   ],
   exports: [
     CardModule,
@@ -93,7 +95,8 @@ import { DialogModule } from 'primeng/dialog';
     MessagesModule,
     TabViewModule,
     SelectButtonModule,
-    DialogModule
+    DialogModule,
+    FileUploadModule
   ]
 })
 export class PrimengModule { }

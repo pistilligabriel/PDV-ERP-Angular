@@ -14,6 +14,11 @@ import { ProdutoService } from 'src/app/services/cadastro/produto/produto.servic
 import { UnidadeMedidaService } from 'src/app/services/cadastro/unidade-medida/unidade-medida.service';
 import { Marca } from '../marca/page/marca.component';
 import { UnidadeMedida } from '../unidade-medida/page/unidade-medida.component';
+import { UsuarioPerfil } from 'src/app/models/interfaces/usuario/UsuarioPerfil';
+import { Usuarios } from 'src/app/models/interfaces/usuario/response/UsuariosResponse';
+import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
+import { Tipo } from 'src/app/models/enums/users/Tipo.enum';
+import { Usuario } from '../usuario/page/usuario.component';
 
 export interface Produto {
   codigo: bigint,
@@ -97,8 +102,13 @@ export class ProdutoComponent implements OnInit, OnDestroy {
 
   marcaSelecionada!: Marca;
 
+  usuario!: Usuario;
+
+  Tipo = Tipo;
+
   constructor(
     private produtoService: ProdutoService,
+    private usuarioService: UsuarioService,
     private messageService: MessageService,
     private router: Router,
     private formBuilderProduto: FormBuilder,
@@ -137,7 +147,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
    * Formulário reativo para adicionar/editar grupos de usuários.
    */
   public produtoForm = this.formBuilderProduto.group({
-    codigo: [null as bigint | null],
+    codigo: [{value: null as bigint | null, disabled: true}],
     descricao: ['', [Validators.required]],
     observacao: [''],
     fabricante: [null as bigint | null, [Validators.required]],
@@ -201,6 +211,17 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         });
       }
     });
+
+    this.usuarioService.getUsuarioLogado().subscribe({
+      next: (usuario) => {
+        this.usuario = usuario
+        console.log(this.usuario)
+      },
+      error: (e) => {
+        console.log('Não foi possível obter o usuário logado', e)
+      }
+    })
+
 
   }
 

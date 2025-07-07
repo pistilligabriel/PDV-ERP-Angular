@@ -104,7 +104,7 @@ export class MarcaComponent implements OnInit, OnDestroy {
    * Formulário reativo para adicionar/editar grupos de usuários.
    */
   public marcaForm = this.formBuilderUser.group({
-    codigo: [null as bigint | null],
+    codigo: [{value:null as bigint | null, disabled: true}],
     descricao: ['', [Validators.required]],
     status: [{ value: '', disabled: true }],
     empresa: [{ value: 1, disabled: true }],

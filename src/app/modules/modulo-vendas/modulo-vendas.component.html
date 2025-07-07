@@ -137,8 +137,11 @@
             </p-table>
           </div>
         </div>
-        <p-dialog header="Produtos Vendidos" [(visible)]="mostrarDialogProdutos" [modal]="true"
+        <p-dialog header="Venda Código {{vendaAtual?.codigo}}" [(visible)]="mostrarDialogProdutos" [modal]="true"
           [style]="{ width: '50vw' }">
+          <div>
+            <h2>Cliente: {{vendaAtual?.pedidoDto?.integrante?.nomeCompleto}}</h2>
+          </div>
           <p-table [value]="produtosSelecionados">
             <ng-template pTemplate="header">
               <tr>

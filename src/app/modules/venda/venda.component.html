@@ -109,7 +109,7 @@
     <!-- Rodapé -->
     <div class="pdv-footer">
       <div class="info">
-        {{cliente?.tipoDocumento || "CPF"}}: {{ cliente?.documento || "Não identificado" }} | Cliente: {{cliente?.nome || "Cliente não identificado"}}
+        {{cliente?.tipoDocumento || "CPF"}}: {{ cliente?.documento || "Não identificado" }} | Cliente: {{cliente?.nomeCompleto || "Cliente não identificado"}}
       </div>
       <div>
         Desconto aplicado: R$ {{ descontoAplicado | number: '1.2-2' }}

@@ -18,7 +18,7 @@ registerLocaleData(localePt, 'pt-BR');
 @Component({
   selector: 'app-modulo-vendas',
   templateUrl: './modulo-vendas.component.html',
-  styleUrls: []
+  styleUrls: [],
 })
 export class ModuloVendasComponent implements OnInit {
 
@@ -41,7 +41,7 @@ export class ModuloVendasComponent implements OnInit {
   /**
    * Venda selecionada
    */
-  public vendaSelecionada!: any | null;
+  public vendaSelecionada!: ResponseModuloVendaDto | null;
 
   /**
    * Valor digitado no campo pesquisa
@@ -51,6 +51,8 @@ export class ModuloVendasComponent implements OnInit {
   mostrarDialogProdutos: boolean = false;
 
   produtosSelecionados: ItemDto[] = [];
+
+  vendaAtual: ResponseModuloVendaDto | null = null;
 
   /**
    * Limpa a seleção da tabela.
@@ -123,7 +125,7 @@ export class ModuloVendasComponent implements OnInit {
           venda.pedidoDto.produtos.forEach(produto => {
             pedidos.push({
               CodigoVenda: venda.codigo,
-              Cliente: venda.pedidoDto.integrante.nome,
+              Cliente: venda.pedidoDto.integrante.nomeCompleto,
               DataEmissao: venda.pedidoDto.dataEmissao,
               Produto: produto.descricao,
               Quantidade: produto.quantidade,
@@ -167,7 +169,7 @@ export class ModuloVendasComponent implements OnInit {
           venda.pedidoDto.produtos.forEach(produto => {
             pedidos.push({
               'Código Venda': venda.codigo,
-              'Cliente': venda.pedidoDto.integrante.nome,
+              'Cliente': venda.pedidoDto.integrante.nomeCompleto,
               'Data Emissão': venda.pedidoDto.dataEmissao,
               'Produto': produto.descricao,
               'Quantidade': produto.quantidade,
@@ -272,7 +274,8 @@ export class ModuloVendasComponent implements OnInit {
   }
 
   verProdutos(venda:number) {
-    this.produtosSelecionados = this.vendasDatas.find(v => v.codigo === venda)?.pedidoDto?.produtos || [];
+    this.vendaAtual = this.vendasDatas.find(v => v.codigo === venda) || null;
+    this.produtosSelecionados = this.vendaAtual?.pedidoDto?.produtos || [];
     this.mostrarDialogProdutos = true;
   }
 

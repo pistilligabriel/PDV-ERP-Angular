@@ -11,6 +11,9 @@ import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { ItemDto } from 'src/app/models/dtos/Produto/ItemDto';
 import { Status } from 'src/app/models/enums/Status.enum';
+import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
+import { Usuario } from '../cadastro/usuario/page/usuario.component';
+import { UsuarioPerfil } from 'src/app/models/interfaces/usuario/UsuarioPerfil';
 
 
 registerLocaleData(localePt, 'pt-BR');
@@ -82,8 +85,11 @@ export class VendaComponent implements OnInit {
 
   mostrarDialogQuantidade: boolean = false;
 
+  usuario!: UsuarioPerfil;
+
   constructor(
     private produtoService: ProdutoService,
+    private usuarioService: UsuarioService,
     private clienteService: ClienteService,
     private pedidoService: VendaService,
     private messageService: MessageService,
@@ -103,6 +109,16 @@ export class VendaComponent implements OnInit {
     this.total = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
 
     console.log(this.catalogo)
+
+  //   this.usuarioService.getUsuarioLogado().subscribe({
+  //     next: (usuario) => {
+  //       this.usuario = usuario
+  //     },
+  //     error: (err) => {
+  //       console.log('Não foi possível obter usuario logado', err)
+  //     }
+  //   }
+  // )
   }
 
   // Simulação de banco de produtos

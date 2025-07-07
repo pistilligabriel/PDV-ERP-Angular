@@ -8,6 +8,8 @@ import { Usuarios } from 'src/app/models/interfaces/usuario/response/UsuariosRes
 import { AdicionarUsuario } from 'src/app/models/interfaces/usuario/AdicionarUsuario';
 import { EditarUsuario } from 'src/app/models/interfaces/usuario/EditarUsuario';
 import { environment } from 'src/environment/environment';
+import { UsuarioPerfil } from 'src/app/models/interfaces/usuario/UsuarioPerfil';
+import { Usuario } from 'src/app/modules/cadastro/usuario/page/usuario.component';
 
 @Injectable({
   providedIn: 'root',
@@ -18,7 +20,7 @@ export class UsuarioService {
   private httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
-      Authorization: `${this.JWT_TOKEN}`,
+      Authorization: `Bearer ${this.JWT_TOKEN}`,
     }),
   };
 
@@ -67,11 +69,16 @@ export class UsuarioService {
       this.httpOptions
     );
   }
+  
 
   desativarUsuario(codigo: bigint): Observable<Array<Usuarios>> {
     return this.http.put<Array<Usuarios>>(
       `${this.API_URL}/usuarios/alterar-status/${codigo}`,
       this.httpOptions
     );
+  }
+
+   getUsuarioLogado(): Observable<Usuario>{
+    return this.http.get<Usuario>(`${this.API_URL}/usuarios/perfil`,this.httpOptions)
   }
 }

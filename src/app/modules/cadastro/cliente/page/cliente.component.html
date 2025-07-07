@@ -162,6 +162,12 @@
                 <p-tabView>
                   <p-tabPanel header="Dados Cadastrais">
                     <div class="flex flex-row">
+
+                      <div class="flex flex-column mr-2">
+                        <label for="label">Código</label>
+                        <input pInputText formControlName="codigo" />
+                      </div>
+
                       <div class="flex flex-column mr-2">
                         <label for="label">Status</label>
                         <input pInputText formControlName="status" />
@@ -193,19 +199,15 @@
         <p-button icon="pi pi-bookmark" [rounded]="true" [text]="true" severity="help " (click)="opLogin.toggle($event)"></p-button> -->
                     <br /><br />
                     <div class="p-float-label flex flex-column mr-4">
-                      <input pInputText formControlName="nome" style="width: 500px" />
-                      <label for="float-label">Nome</label>
+                      <input pInputText formControlName="nomeCompleto" style="width: 500px" />
+                      <label for="float-label">Nome Completo</label>
                     </div>
                     <!-- <p-overlayPanel #opPassword>
           Campo deve ser preenchido s senha e deve ter no minimo 6 caracteres.
         </p-overlayPanel>
         <p-button icon="pi pi-bookmark" [rounded]="true" [text]="true" severity="help " (click)="opPassword.toggle($event)"></p-button> -->
                     <br /><br />
-                    <div class="p-float-label flex flex-column mr-4">
-                      <input pInputText type="text" formControlName="sobrenome" style="width: 500px" />
-                      <label for="float-label">Sobrenome</label>
-                    </div>
-                    <br /><br />
+                   
                     <div class="flex flex-row mr-4">
                       <div class="p-float-label flex flex-column mr-2">
                         <p-inputMask mask="(99)99999-9999" type="phone" formControlName="telefone" />

@@ -116,7 +116,7 @@
                       <button pButton pRipple class="p-button-rounded p-button-text" icon="pi pi-pencil"
                         pTooltip="Editar Produto" (click)="onEditButtonClick(produto)"></button>
                       <button pButton pRipple class="p-button-rounded p-button-text p-button-danger" icon="pi pi-ban"
-                        pTooltip="Desativar Produto" (click)="onDisableButtonClick(produto)"></button>
+                        pTooltip="Alterar Status Produto" (click)="onDisableButtonClick(produto)"></button>
                     </div>
                   </td>
                   <!-- <td>
@@ -159,6 +159,12 @@
             <form [formGroup]="produtoForm" (ngSubmit)="adicionarOuEditarProduto()">
               <div class="card flex flex-column md:flex-column gap-4">
                 <div class="flex flex-row">
+
+                <div class="flex flex-column mr-2">
+                    <label for="label">Código</label>
+                    <input pInputText formControlName="codigo">
+                </div>
+
                   <div class="flex flex-column mr-2">
                     <label for="label">Status</label>
                     <input pInputText formControlName="status" />
@@ -206,7 +212,7 @@
                 </div>
               </div>
               <div class="flex flex-row mt-2 mr-2">
-                <div class="p-float-label flex flex-column mr-2">
+                <div *ngIf="usuario?.tipo == Tipo.ADMIN"  class="p-float-label flex flex-column mr-2"  >
                   <p-inputNumber formControlName="precoCusto" inputId="custo" mode="currency" currency="BRL"
                     locale="pt-BR" />
                   <label for="float-label">Custo</label>
@@ -223,7 +229,7 @@
                   <label for="float-label">Valor Venda</label>
                 </div>
 
-                <div class="p-float-label flex flex-column mr-2">
+                <div *ngIf="usuario?.tipo == Tipo.ADMIN" class="p-float-label flex flex-column mr-2" >
                   <p-inputNumber suffix="%" formControlName="margemLucro" inputId="margemLucro" />
                   <label for="float-label">Margem Lucro(%)</label>
                 </div>

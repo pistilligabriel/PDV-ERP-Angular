@@ -14,8 +14,7 @@ import { ClienteService } from 'src/app/services/cadastro/cliente/cliente.servic
 export interface Clientes {
   codigo: bigint;
   tipoIntegrante: string;
-  nome: string;
-  sobrenome: string;
+  nomeCompleto: string;
   telefone: string;
   email: string;
   tipoDocumento: string;
@@ -33,8 +32,7 @@ export interface Clientes {
 }
 
 export interface AddCliente {
-  nome: string;
-  sobrenome: string;
+  nomeCompleto: string;
   telefone: string;
   email: string;
   tipoDocumento: string;
@@ -49,8 +47,7 @@ export interface AddCliente {
 }
 export interface EditCliente {
   codigo: bigint;
-  nome: string;
-  sobrenome: string;
+  nomeCompleto: string;
   status: string;
   telefone: string;
   email: string;
@@ -154,9 +151,8 @@ export class ClienteComponent implements OnInit {
    * Formulário reativo para adicionar/editar grupos de usuários.
    */
   public clienteForm = this.formBuilderCliente.group({
-    codigo: [null as bigint | null],
-    nome: ['', [Validators.required]],
-    sobrenome: ['', [Validators.required]],
+    codigo: [{value: null as bigint | null, disabled: true}],
+    nomeCompleto: ['', [Validators.required]],
     telefone: ['', [Validators.required]],
     email: ['', [Validators.required]],
     tipoDocumento: [null as string | null, [Validators.required]],
@@ -179,8 +175,7 @@ export class ClienteComponent implements OnInit {
 
     this.cols = [
       { field: 'status', header: 'Status' },
-      { field: 'nome', header: 'Nome' },
-      { field: 'sobrenome', header: 'Sobrenome' },
+      { field: 'nomeCompleto', header: 'Nome Completo' },
       { field: 'documento', header: 'Documento' },
       { field: 'telefone', header: 'Telefone' },
       { field: 'email', header: 'E-mail' },
@@ -307,8 +302,7 @@ export class ClienteComponent implements OnInit {
     this.showForm = true;
     this.clienteForm.setValue({
       codigo: null,
-      nome: null,
-      sobrenome: null,
+      nomeCompleto: null,
       telefone: null,
       email: null,
       tipoDocumento: null,
@@ -343,8 +337,7 @@ export class ClienteComponent implements OnInit {
         data => {
           this.clienteForm.patchValue({
             codigo: data.codigo,
-            nome: data.nome,
-            sobrenome: data.sobrenome,
+            nomeCompleto: data.nomeCompleto,
             telefone: data.telefone,
             email: data.email,
             tipoDocumento: data.tipoDocumento,
@@ -443,8 +436,7 @@ export class ClienteComponent implements OnInit {
 
     if (this.clienteForm.valid) {
       const requestCreateCliente: AddCliente = {
-        nome: this.clienteForm.value.nome as string,
-        sobrenome: this.clienteForm.value.sobrenome as string,
+        nomeCompleto: this.clienteForm.value.nomeCompleto as string,
         telefone: this.clienteForm.value.telefone as string,
         email: this.clienteForm.value.email as string,
         tipoDocumento: this.clienteForm.value.tipoDocumento as string,
@@ -509,8 +501,7 @@ export class ClienteComponent implements OnInit {
     if (this.clienteForm?.valid) {
       const requestEditCliente: EditCliente = {
         codigo: this.clienteForm.getRawValue().codigo as bigint,
-        nome: this.clienteForm.value.nome as string,
-        sobrenome: this.clienteForm.value.sobrenome as string,
+        nomeCompleto: this.clienteForm.value.nomeCompleto as string,
         status: this.clienteForm.getRawValue().status as string,
         empresa: this.clienteForm.getRawValue().empresa as number,
         versao: this.clienteForm.getRawValue().versao as string,
@@ -595,8 +586,8 @@ export class ClienteComponent implements OnInit {
                 detail: 'Status Alterado com sucesso!',
                 life: 3000,
               });
-              this.listarClientes();
             }
+            this.listarClientes();
           },
           error: (error) => {
             console.error('Erro ao Alterar o Status!:', error);
