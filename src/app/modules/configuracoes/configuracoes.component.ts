@@ -18,6 +18,7 @@ export class ConfigComponent implements OnInit, OnDestroy {
     private readonly destroy$: Subject<void> = new Subject<void>();
 
     logo!: string;
+    nomeEmpresa!: string;
     config!: Config;
 
     public configForm = this.formBuilder.group({
@@ -32,14 +33,30 @@ export class ConfigComponent implements OnInit, OnDestroy {
     ) { }
     
     ngOnInit(): void {
-        this.configService.getLogo().subscribe(blob => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                this.logo = reader.result as string; // Armazena a URL base64
-            };
-            reader.readAsDataURL(blob); // Converte o Blob para base64
-        });
+        this.obterInformacoes()
+        this.getNomeEmpresa();
+        
     }
+
+     getNomeEmpresa() {
+    this.configService.getConfig().subscribe(config => {
+      this.nomeEmpresa = config.nomeEmpresa;
+    });
+  }
+
+  obterInformacoes(): void {
+    this.configService.getLogo().subscribe(blob => {
+      console.log('Blob recebido:', blob);
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.logo = reader.result as string;
+      };
+      reader.readAsDataURL(blob);
+    }, error => {
+      console.error('Erro ao carregar logo', error);
+      this.logo = 'assets/default-logo.png';
+    });
+  }
 
     salvarConfiguracoes() {
         if (this.configForm.valid) {
@@ -74,11 +91,7 @@ export class ConfigComponent implements OnInit, OnDestroy {
         }
     }
 
-    getNomeEmpresa() {
-    this.configService.getConfig().subscribe(config => {
-      this.nomeEmpresa = config.nomeEmpresa;
-    });
-  }
+    
 
     ngOnDestroy(): void {
         this.destroy$.next();

@@ -219,7 +219,7 @@ export class VendaComponent implements OnInit {
     const pedido: PedidoDto = {
       integrante: this.cliente as Clientes,
       produtos: produtosCorrigidos,
-      status: Status.NORMAL,
+      status: Status.FINALIZADO,
       formaPagamento: this.tipoFinalizacaoVenda as FormaPagamento,
       porcentagemDesconto: this.porcentagemDesconto,
       parcelas: this.parcelas as number,
@@ -235,7 +235,7 @@ export class VendaComponent implements OnInit {
         summary: 'Sucesso',
         detail: 'Pedido criado com sucesso!'
       });
-      this.router.navigate(['/home']);
+      this.router.navigate(['/faturamento/modulo-vendas']);
       this.reset();
     }, error => {
       console.error('Erro ao criar pedido:', error);

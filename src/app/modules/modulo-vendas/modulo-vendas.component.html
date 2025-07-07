@@ -18,7 +18,7 @@
               (onRowSelect)="onRowSelect($event)" selectionMode="single" [rows]="10" [paginator]="true"
               [responsive]="true" [resizableColumns]="true" columnResizeMode="fit" styleClass="p-datatable-gridlines"
               [tableStyle]="{ 'min-width': '50rem' }" [rowHover]="true" [showCurrentPageReport]="true"
-              [rowsPerPageOptions]="[10, 25, 50, 100]" [globalFilterFields]="[
+              [rowsPerPageOptions]="[10, 25, 50, 100]"  [globalFilterFields]="[
                 'codigo',
                 'status',
                 'dataEmissao',
@@ -27,13 +27,12 @@
                 'formaPagamento',
               ]" [exportHeader]="'customExportHeader'" dataKey="codigo"
               currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros" [filterDelay]="0"
-              [sortField]="'codigo'" [sortOrder]="-1">
+              [sortField]="'codigo'" [sortOrder]="-1" >
               <ng-template pTemplate="caption">
                 <div class="flex">
                   <div class="mr-5">
                     <button type="button" class="mr-2" pButton pRipple icon="pi pi-plus" pTooltip="Nova Venda"
                       (click)="onAddButtonClick()">
-                      Nova Venda
                     </button>
                   </div>
 
@@ -61,6 +60,8 @@
                   </span>
                   <button pButton label="Limpar" class="p-button-outlined" icon="pi pi-filter-slash"
                     (click)="clear(tabelaVenda)"></button>
+                    <button pButton class="p-button-outlined ml-3" icon="pi pi-refresh"
+                    (click)="atualizarTabela()"></button>
                 </div>
               </ng-template>
 
@@ -98,10 +99,10 @@
               </ng-template>
 
               <ng-template pTemplate="body" let-venda let-columns="columns">
-                <tr>
+                <tr [ngClass]="getRowClass(venda)">
                   <td>
                     <div class="flex justify-content-center gap-2 align-content-center align-items-center">
-                      <button pButton pRipple class="p-button-rounded p-button-text p-button-info" icon="pi pi-eye"
+                      <button pButton pRipple class="p-button-rounded p-button-text p-button-info icon-color" icon="pi pi-eye"
                         pTooltip="Visualizar Venda" (click)="verProdutos(venda?.codigo)"></button>
                     </div>
                   </td>
@@ -109,10 +110,11 @@
                   <ng-container>
                     <td> {{ venda?.pedidoDto?.status }} </td>
                     <td> {{ venda?.pedidoDto?.dataEmissao }} </td>
-                    <td> {{ venda?.pedidoDto?.integrante?.nome }} </td>
+                    <td> {{ venda?.pedidoDto?.integrante?.nomeCompleto }} </td>
                     <td> R${{ venda?.pedidoDto?.totalSemDesconto | number: '1.2-2' }} </td>
                     <td> R${{ venda?.pedidoDto?.desconto | number: '1.2-2' }} </td>
                     <td> R${{ venda?.pedidoDto?.total | number: '1.2-2' }} </td>
+                    <td> {{ venda?.pedidoDto?.formaPagamento }} </td>
                     <ng-template #statusColumn>
                       <td>
                         <p-tag [value]="venda.status" [severity]="getSeverity(venda.status)"></p-tag>
@@ -137,7 +139,7 @@
             </p-table>
           </div>
         </div>
-        <p-dialog header="Venda Código {{vendaAtual?.codigo}}" [(visible)]="mostrarDialogProdutos" [modal]="true"
+        <p-dialog header="Venda Código {{vendaAtual?.codigo}} - {{vendaAtual?.pedidoDto?.status}}" [(visible)]="mostrarDialogProdutos" [modal]="true"
           [style]="{ width: '50vw' }">
           <div>
             <h2>Cliente: {{vendaAtual?.pedidoDto?.integrante?.nomeCompleto}}</h2>

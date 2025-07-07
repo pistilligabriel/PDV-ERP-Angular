@@ -34,4 +34,13 @@ private API_URL = environment.apiUrl;
     getAllVendas(): Observable<Array<ResponseModuloVendaDto>> {
         return this.http.get<Array<ResponseModuloVendaDto>>(`${this.API_URL}/pedidos`, this.httpOptions);
     }
+
+    cancelarVenda(codigo:bigint):Observable<Array<PedidoDto>>{
+      return this.http.put<Array<PedidoDto>>(`${this.API_URL}/pedidos/cancelar/${codigo}`,this.httpOptions)
+    }
+
+//     desativarCliente(CODIGO:bigint):Observable<Array<Clientes>>{
+//   return this.http.post<Array<Clientes>>(`${this.API_URL}/clientes/desativar/${CODIGO}`, this.httpOptions);
+// }
+
 }

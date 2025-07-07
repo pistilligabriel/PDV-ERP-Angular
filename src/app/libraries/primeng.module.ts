@@ -1,34 +1,34 @@
 import { NgModule } from '@angular/core';
-import { CardModule } from 'primeng/card';
-import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
-import { SidebarModule } from 'primeng/sidebar';
-import { ToolbarModule } from 'primeng/toolbar';
+import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
-import { TableModule } from 'primeng/table';
-import { InputMaskModule } from 'primeng/inputmask';
-import { InputSwitchModule } from 'primeng/inputswitch';
-import { InputTextareaModule } from 'primeng/inputtextarea';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { DynamicDialogModule } from 'primeng/dynamicdialog';
-import { DropdownModule } from 'primeng/dropdown';
+import { CheckboxModule } from 'primeng/checkbox';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { TooltipModule } from 'primeng/tooltip';
-import { ToggleButtonModule } from 'primeng/togglebutton';
+import { DialogModule } from 'primeng/dialog';
+import { DropdownModule } from 'primeng/dropdown';
+import { DynamicDialogModule } from 'primeng/dynamicdialog';
+import { FileUploadModule } from 'primeng/fileupload';
+import { InputMaskModule } from 'primeng/inputmask';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputTextareaModule } from 'primeng/inputtextarea';
 import { MenuModule } from 'primeng/menu';
 import { MenubarModule } from 'primeng/menubar';
-import { TieredMenuModule } from 'primeng/tieredmenu';
-import { CheckboxModule } from 'primeng/checkbox';
-import { OverlayPanelModule } from 'primeng/overlaypanel';
-import { TagModule } from 'primeng/tag';
-import { MultiSelectModule } from 'primeng/multiselect';
 import { MessagesModule } from 'primeng/messages';
-import { TabPanel, TabViewModule } from 'primeng/tabview';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import { DialogModule } from 'primeng/dialog';
-import { FileUploadModule } from 'primeng/fileupload';
-
+import { SidebarModule } from 'primeng/sidebar';
+import { TableModule } from 'primeng/table';
+import { TabViewModule } from 'primeng/tabview';
+import { TagModule } from 'primeng/tag';
+import { TieredMenuModule } from 'primeng/tieredmenu';
+import { ToastModule } from 'primeng/toast';
+import { ToggleButtonModule } from 'primeng/togglebutton';
+import { ToolbarModule } from 'primeng/toolbar';
+import { TooltipModule } from 'primeng/tooltip';
+import { ContextMenuModule } from 'primeng/contextmenu';
 
 
 
@@ -64,7 +64,8 @@ import { FileUploadModule } from 'primeng/fileupload';
     TabViewModule,
     SelectButtonModule,
     DialogModule,
-    FileUploadModule
+    FileUploadModule,
+    ContextMenuModule
   ],
   exports: [
     CardModule,
@@ -96,7 +97,8 @@ import { FileUploadModule } from 'primeng/fileupload';
     TabViewModule,
     SelectButtonModule,
     DialogModule,
-    FileUploadModule
+    FileUploadModule,
+    ContextMenuModule
   ]
 })
 export class PrimengModule { }

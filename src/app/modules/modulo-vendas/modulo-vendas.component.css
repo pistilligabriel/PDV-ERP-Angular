@@ -1,0 +1,18 @@
+::ng-deep .row-cancelado {
+  background-color: #ff3636 !important;
+  color:white
+}
+
+::ng-deep .row-finalizado {
+  background-color: #04bb3b !important;
+  color:white
+}
+
+.icon-color{
+  color:black;
+}
+
+.icon-color:hover{
+  background-color: black;
+  color: white;
+}

@@ -368,7 +368,6 @@ export class ProdutoComponent implements OnInit, OnDestroy {
 
 
   onEditButtonClick(produto: Produto): void {
-    const formattedDate = format(new Date(produto.versao), 'dd/MM/yyyy HH:mm:ss');
 
 
     if (produto.status === 'DESATIVADO') {
@@ -392,7 +391,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
           margemLucro: data.margemLucro,
           status: data.status,
           empresa: data.empresa,
-          versao: formattedDate,
+          versao: data.versao,
           dataCadastro: data.dataCadastro,
         });
         this.produtoForm.get('precoVenda')?.valueChanges.subscribe(() => {

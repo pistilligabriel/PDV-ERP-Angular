@@ -10,10 +10,11 @@
                     <div class="card flex flex-column md:flex-column gap-4">
                         <div class="flex flex-column mr-2">
                             <label for="label">Nome Empresa</label>
-                            <input pInputText formControlName="nomeEmpresa" />
+                            <input [(ngModel)]="nomeEmpresa" pInputText formControlName="nomeEmpresa" />
                         </div>
                         <div class="flex flex-column mr-2">
                             <label for="label">Logo</label>
+                            <br>
                             <p-fileUpload name="logo" [customUpload]="true" accept="image/*" [maxFileSize]="1000000"
                                 mode="basic" chooseLabel="Escolher Imagem" chooseIcon="pi pi-upload"
                                 (onSelect)="onLogoUpload($event)">

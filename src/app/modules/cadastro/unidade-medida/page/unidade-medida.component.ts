@@ -233,7 +233,6 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
  * Exibe o formulário de adição de grupo.
  */
   onAddButtonClick() {
-    const formattedDate = format(new Date(), 'dd/MM/yyyy hh:mm:ss')
     this.showForm = true;
     this.unidadeForm.setValue({
       codigo: null,
@@ -241,7 +240,7 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
       simbolo: null,
       status: 'ATIVO',
       empresa: 1,
-      versao: formattedDate,
+      versao:null,
     });
   }
 

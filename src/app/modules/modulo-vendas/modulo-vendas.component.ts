@@ -4,7 +4,7 @@ import localePt from '@angular/common/locales/pt';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import * as FileSaver from 'file-saver';
-import { MessageService } from 'primeng/api';
+import { MenuItem, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
 import { ResponseModuloVendaDto } from 'src/app/models/dtos/ModuloVenda/ResponseModuloVendaDto';
@@ -18,9 +18,11 @@ registerLocaleData(localePt, 'pt-BR');
 @Component({
   selector: 'app-modulo-vendas',
   templateUrl: './modulo-vendas.component.html',
-  styleUrls: [],
+  styleUrls: ['./modulo-vendas.component.css'],
 })
 export class ModuloVendasComponent implements OnInit {
+
+  items: MenuItem[] | undefined;
 
 
   private destroy$: Subject<void> = new Subject<void>();
@@ -67,6 +69,11 @@ export class ModuloVendasComponent implements OnInit {
     table.clear();
   }
 
+   atualizarTabela() {
+    this.valorPesquisa = "";
+    this.listarVendas();
+  }
+
   cols!: Column[];
 
   colunasSelecionadas!: Column[];
@@ -91,12 +98,34 @@ export class ModuloVendasComponent implements OnInit {
       { field: 'valorBruto', header: 'Total Bruto' },
       { field: 'desconto', header: 'Desconto' },
       { field: 'valorTotal', header: 'Valor Total' },
+      { field: 'formaPagamento', header: 'Forma Pagamento'}
       // { field: 'lucroVenda', header: 'Lucro Venda' },
     ];
 
     this.colunasSelecionadas = this.cols;
 
+    this.items = [
+      { label: 'Cancelar Venda',
+        icon: 'pi pi-block',
+        command: () => {
+          this.cancelarVenda();
+        }
+      }
+    ]
 
+  }
+
+  cancelarVenda() {
+    if (this.vendaAtual && this.vendaAtual.codigo !== undefined) {
+      this.vendaService.cancelarVenda(this.vendaAtual.codigo).pipe(takeUntil(this.destroy$)).subscribe();
+    } else {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Nenhuma venda selecionada',
+        detail: 'Selecione uma venda para cancelar.',
+        life: 3000,
+      });
+    }
   }
 
   /**
@@ -220,6 +249,17 @@ export class ModuloVendasComponent implements OnInit {
     }
   }
 
+  getRowClass(venda: ResponseModuloVendaDto): string{
+    switch(venda.pedidoDto.status){
+      case 'CANCELADO':
+        return 'row-cancelado';
+      case 'FINALIZADO':
+        return 'row-finalizado';
+      default:
+        return ''
+    }
+  }
+
   /**
    * Manipulador de eventos para a seleção de uma linha na tabela.
    *
@@ -273,7 +313,7 @@ export class ModuloVendasComponent implements OnInit {
       });
   }
 
-  verProdutos(venda:number) {
+  verProdutos(venda:bigint) {
     this.vendaAtual = this.vendasDatas.find(v => v.codigo === venda) || null;
     this.produtosSelecionados = this.vendaAtual?.pedidoDto?.produtos || [];
     this.mostrarDialogProdutos = true;
