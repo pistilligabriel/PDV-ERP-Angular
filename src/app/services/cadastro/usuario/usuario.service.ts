@@ -10,6 +10,8 @@ import { EditarUsuario } from 'src/app/models/interfaces/usuario/EditarUsuario';
 import { environment } from 'src/environment/environment';
 import { UsuarioPerfil } from 'src/app/models/interfaces/usuario/UsuarioPerfil';
 import { Usuario } from 'src/app/modules/cadastro/usuario/page/usuario.component';
+import { EditarTipoUsuario } from 'src/app/models/interfaces/usuario/EditarTipoUsuario';
+import { Tipo } from 'src/app/models/enums/users/Tipo.enum';
 
 @Injectable({
   providedIn: 'root',
@@ -68,6 +70,10 @@ export class UsuarioService {
       requestDatas,
       this.httpOptions
     );
+  }
+
+  alterarTipo(codigo: bigint, tipo:Tipo):Observable<Usuarios>{
+    return this.http.patch<Usuarios>(`${this.API_URL}/usuarios/alterar-tipo/${codigo}`,JSON.stringify(tipo),this.httpOptions)
   }
   
 

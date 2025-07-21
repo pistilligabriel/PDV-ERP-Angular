@@ -36,7 +36,7 @@ private API_URL = environment.apiUrl;
     }
 
     cancelarVenda(codigo:bigint):Observable<Array<PedidoDto>>{
-      return this.http.put<Array<PedidoDto>>(`${this.API_URL}/pedidos/cancelar/${codigo}`,this.httpOptions)
+      return this.http.post<Array<PedidoDto>>(`${this.API_URL}/pedidos/cancelar/${codigo}`,this.httpOptions)
     }
 
 //     desativarCliente(CODIGO:bigint):Observable<Array<Clientes>>{

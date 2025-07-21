@@ -5,6 +5,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import * as FileSaver from 'file-saver';
 import { MenuItem, MessageService } from 'primeng/api';
+import { ContextMenu } from 'primeng/contextmenu';
 import { Table } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
 import { ResponseModuloVendaDto } from 'src/app/models/dtos/ModuloVenda/ResponseModuloVendaDto';
@@ -22,12 +23,15 @@ registerLocaleData(localePt, 'pt-BR');
 })
 export class ModuloVendasComponent implements OnInit {
 
+
   items: MenuItem[] | undefined;
 
 
   private destroy$: Subject<void> = new Subject<void>();
 
   @ViewChild('tabelaVenda') tabelaVenda: Table | undefined;
+
+   @ViewChild('cm') cm !: ContextMenu;
 
   /**
    * Flag para exibir ou ocultar o formulário de grupo de usuário.
@@ -55,6 +59,8 @@ export class ModuloVendasComponent implements OnInit {
   produtosSelecionados: ItemDto[] = [];
 
   vendaAtual: ResponseModuloVendaDto | null = null;
+  
+  mostrarDialogTipoVenda: boolean = false;
 
   /**
    * Limpa a seleção da tabela.
@@ -110,6 +116,14 @@ export class ModuloVendasComponent implements OnInit {
         command: () => {
           this.cancelarVenda();
         }
+      },
+    ]
+
+    this.items=[
+      {
+        label:'Cancelar Venda',
+        icon: 'pi pi-ban',
+        command: () => { this.cancelarVenda() }
       }
     ]
 
@@ -117,7 +131,27 @@ export class ModuloVendasComponent implements OnInit {
 
   cancelarVenda() {
     if (this.vendaAtual && this.vendaAtual.codigo !== undefined) {
-      this.vendaService.cancelarVenda(this.vendaAtual.codigo).pipe(takeUntil(this.destroy$)).subscribe();
+      this.vendaService.cancelarVenda(this.vendaAtual.codigo).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (response) => {
+          if (response) {
+              console.log('Sucesso ao Alterar o Status!:', response);
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Sucesso',
+                detail: 'Venda cancelada com sucesso!',
+                life: 5000,
+              });
+              this.listarVendas();
+            }
+        },error: (err) =>{
+          this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Não foi possível cancelar venda!',
+                life: 5000,
+              });
+        }
+      });
     } else {
       this.messageService.add({
         severity: 'warn',
@@ -277,6 +311,7 @@ export class ModuloVendasComponent implements OnInit {
 */
   onAddButtonClick() {
     console.log('Adicionar venda')
+    this.mostrarDialogTipoVenda = true;
     this.router.navigate(['faturamento/venda']);
   }
 
@@ -318,6 +353,15 @@ export class ModuloVendasComponent implements OnInit {
     this.produtosSelecionados = this.vendaAtual?.pedidoDto?.produtos || [];
     this.mostrarDialogProdutos = true;
   }
+
+ onContextMenu(event:any, venda:any) {
+        this.vendaAtual = venda;
+        this.cm.show(event);
+    }
+
+    onHide() {
+        this.vendaAtual = null;
+    }
 
   /**
    * Manipulador de eventos OnDestroy. Completa o subject de destruição.

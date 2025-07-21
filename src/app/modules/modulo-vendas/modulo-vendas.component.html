@@ -99,7 +99,7 @@
               </ng-template>
 
               <ng-template pTemplate="body" let-venda let-columns="columns">
-                <tr [ngClass]="getRowClass(venda)">
+                <tr [ngClass]="getRowClass(venda)" (contextmenu)="onContextMenu($event,venda)">
                   <td>
                     <div class="flex justify-content-center gap-2 align-content-center align-items-center">
                       <button pButton pRipple class="p-button-rounded p-button-text p-button-info icon-color" icon="pi pi-eye"
@@ -123,6 +123,10 @@
                   </ng-container>
                 </tr>
               </ng-template>
+              <p-dialog header="Selecione o tipo da venda" [(visible)]="mostrarDialogTipoVenda" [modal]="true">
+                <p-button  label="Novo" [raised]="true" severity="info" />
+                <p-button  label="Recapagem" [raised]="true" severity="info" />
+              </p-dialog>
 
               <ng-template pTemplate="summary">
                 <div class="text-center">
@@ -165,3 +169,4 @@
             </ng-template>
           </p-table>
         </p-dialog>
+        <p-contextMenu #cm [model]="items" (onHide)="onHide()" />

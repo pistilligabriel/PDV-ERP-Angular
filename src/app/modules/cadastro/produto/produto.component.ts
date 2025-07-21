@@ -3,7 +3,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { format } from 'date-fns';
 import * as FileSaver from 'file-saver';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { Table } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
 import { Column } from 'src/app/models/interfaces/Column';
@@ -19,10 +19,16 @@ import { Usuarios } from 'src/app/models/interfaces/usuario/response/UsuariosRes
 import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
 import { Tipo } from 'src/app/models/enums/users/Tipo.enum';
 import { Usuario } from '../usuario/page/usuario.component';
+import { ContextMenu } from 'primeng/contextmenu';
+import { Status } from 'src/app/models/enums/Status.enum';
+import { TipoProduto } from 'src/app/models/enums/products/TipoProduto.enum';
+import { DropDownEnumOptions } from 'src/app/models/interfaces/usuario/DropDownEnumOptions';
+import { DropDownTipoProduto } from 'src/app/models/interfaces/product/DropDownTipoProduto';
 
 export interface Produto {
   codigo: bigint,
   descricao: string,
+  tipoProduto: TipoProduto | null,
   observacao: string,
   fabricante: Marca,
   modelo: string,
@@ -41,6 +47,7 @@ export interface Produto {
 
 export interface AdicionarProduto {
   descricao: string,
+  tipoProduto: TipoProduto | null,
   observacao: string,
   fabricante: bigint,
   modelo: string,
@@ -55,6 +62,7 @@ export interface AdicionarProduto {
 export interface EditarProduto {
   codigo: bigint,
   descricao: string,
+  tipoProduto: TipoProduto,
   observacao: string,
   fabricante: bigint,
   modelo: string,
@@ -65,6 +73,10 @@ export interface EditarProduto {
   margemLucro: number,
   empresa: number,
   status: string;
+}
+
+export interface EntradaAcertoEstoque{
+  estoque:number | null
 }
 
 
@@ -79,6 +91,10 @@ export class ProdutoComponent implements OnInit, OnDestroy {
 
 
   @ViewChild('tabelaProduto') tabelaProduto: Table | undefined;
+
+  @ViewChild('cm') cm !: ContextMenu;
+
+  items: MenuItem[] | undefined;
 
   /**
    * Flag para exibir ou ocultar o formulário de produto.
@@ -98,6 +114,10 @@ export class ProdutoComponent implements OnInit, OnDestroy {
 
   unidadeMedidaSelecionada!: UnidadeMedida;
 
+  tipoProduto!: DropDownTipoProduto[];
+
+  tipoProdutoSelecionado!: TipoProduto;
+
   marca!: DropDownOptions[];
 
   marcaSelecionada!: Marca;
@@ -105,6 +125,12 @@ export class ProdutoComponent implements OnInit, OnDestroy {
   usuario!: Usuario;
 
   Tipo = Tipo;
+
+  mostrarTelaAcaoEntradaEstoque: boolean = false;
+
+  mostrarTelaAcaoAjusteEstoque: boolean = false;
+
+  quantidadeAjusteEstoque!: EntradaAcertoEstoque;
 
   constructor(
     private produtoService: ProdutoService,
@@ -147,8 +173,9 @@ export class ProdutoComponent implements OnInit, OnDestroy {
    * Formulário reativo para adicionar/editar grupos de usuários.
    */
   public produtoForm = this.formBuilderProduto.group({
-    codigo: [{value: null as bigint | null, disabled: true}],
+    codigo: [{ value: null as bigint | null, disabled: true }],
     descricao: ['', [Validators.required]],
+    tipoProduto:[ null as Tipo | null , [Validators.required]],
     observacao: [''],
     fabricante: [null as bigint | null, [Validators.required]],
     modelo: [''],
@@ -163,6 +190,10 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     versao: [{ value: null as Date | string | null, disabled: true }],
   });
 
+  public produtoAcertoEstoqueForm = this.formBuilderProduto.group({
+    codigo: [{ value: null as bigint | null, disabled: true }],
+   estoque: [null,[Validators.required]]
+  });
 
   ngOnInit() {
     this.listarProdutos();
@@ -222,6 +253,29 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       }
     })
 
+    this.items = [
+      {
+        label: 'Entrada de produtos',
+        icon: 'pi pi-plus',
+        command: () => {
+          this.acaoEntradaEstoque()
+          // console.log('produto id:', this.produtoSelecionado)
+        }
+      },
+      {
+        label: 'Acertar Estoque',
+        icon: 'pi pi-wrench',
+        command: () => {
+          this.acaoAjusteEstoque();
+          // console.log('produto id:', this.produtoSelecionado)
+        }
+      }
+    ]
+
+    this.tipoProduto = [
+      {label: 'Novo', value: TipoProduto.NOVO},
+      {label: 'Recapagem', value: TipoProduto.RECAPAGEM}
+    ]
 
   }
 
@@ -314,6 +368,99 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     return !!this.produtoForm.value.codigo;
   }
 
+  acaoEntradaEstoque() {
+    console.log(this.produto?.codigo)
+    this.mostrarTelaAcaoEntradaEstoque = true;
+  }
+
+  acaoAjusteEstoque() {
+    console.log(this.produto?.codigo)
+    this.mostrarTelaAcaoAjusteEstoque = true;
+  }
+
+
+  adicionarEstoque(produto: Produto) {
+    const estoque = this.produtoAcertoEstoqueForm.get('estoque')?.value;
+    console.log(estoque)
+    if (this.produto?.status === Status.DESATIVADO) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Produto desativado, não é possível realizar Entrada.',
+        life: 5000
+      });
+      return
+    }
+    console.log('adicionarEstoque inicio')
+    if (estoque != null) {
+      console.log('verificou se estoque é null')
+      this.produtoService.acertoEstoque(produto?.codigo, estoque).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (response) => {
+          if (response) {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Sucesso',
+              detail: 'Entrada feita com sucesso!',
+              life: 5000
+            });
+            this.mostrarTelaAcaoEntradaEstoque = false;
+            this.listarProdutos()
+          }
+        }, error: (e) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Não foi possível realizar Entrada.',
+            life: 5000
+          })
+          console.error(e);
+        }
+      })
+    }
+  }
+
+
+  acertarEstoque(produto:Produto) {
+    const estoque = this.produtoAcertoEstoqueForm.get('estoque')?.value;
+    console.log(estoque)
+    if (this.produto?.status === Status.DESATIVADO) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Produto desativado, não é possível realizar acerto de estoque.',
+        life: 5000
+      });
+      return
+    }
+    console.log('adicionarEstoque inicio')
+    if (estoque != null) {
+      console.log('verificou se estoque é null')
+      this.produtoService.acertoEstoque(produto?.codigo, estoque).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (response) => {
+          if (response) {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Sucesso',
+              detail: 'Acerto de estoque feito com sucesso!',
+              life: 5000
+            });
+            this.quantidadeAjusteEstoque.estoque = null;
+            this.mostrarTelaAcaoAjusteEstoque = false;
+            this.listarProdutos()
+          }
+        }, error: (e) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Não foi possível realizar acerto de estoque.',
+            life: 5000
+          })
+          console.error(e);
+        }
+      })
+    }
+  }
+
   /**
   * Manipulador de eventos para o botão de adição de grupo.
   * Exibe o formulário de adição de grupo.
@@ -324,6 +471,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     this.produtoForm.setValue({
       codigo: null,
       descricao: null,
+      tipoProduto:null,
       observacao: null,
       modelo: null,
       fabricante: null,
@@ -381,6 +529,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         this.produtoForm.patchValue({
           codigo: data.codigo,
           descricao: data.descricao,
+          tipoProduto:data.tipoProduto as Tipo | null,
           observacao: data.observacao,
           unidadeVenda: data.unidadeVenda?.codigo as bigint,
           fabricante: data.fabricante?.codigo as bigint,
@@ -442,6 +591,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
           this.produtoForm.patchValue({
             codigo: response.codigo,
             descricao: response.descricao,
+            tipoProduto:response.tipoProduto as Tipo | null,
             fabricante: response.fabricante.codigo,
             unidadeVenda: response.unidadeVenda?.codigo,
             precoCusto: response.precoCusto,
@@ -506,6 +656,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     if (this.produtoForm.valid) {
       const requestCreateproduto: AdicionarProduto = {
         descricao: this.produtoForm.value.descricao as string,
+        tipoProduto:this.produtoForm.value.tipoProduto as TipoProduto | null,
         observacao: this.produtoForm.value.observacao as string,
         fabricante: this.produtoForm.value.fabricante as bigint,
         modelo: this.produtoForm.value.modelo as string,
@@ -569,6 +720,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       const requestEditProduto: EditarProduto = {
         codigo: this.produtoForm.value.codigo as bigint,
         descricao: this.produtoForm.value.descricao as string,
+        tipoProduto:this.produtoForm.value.tipoProduto as string as TipoProduto,
         observacao: this.produtoForm.value.observacao as string,
         fabricante: this.produtoForm.value.fabricante as bigint,
         modelo: this.produtoForm.value.modelo as string,
@@ -668,6 +820,16 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       });
     }
   }
+
+  onContextMenu(event: any, produto: any) {
+    this.produto = produto;
+    this.cm.show(event);
+  }
+
+  onHide() {
+    this.produtoSelecionado = null;
+  }
+
 
   /**
    * Manipulador de eventos OnDestroy. Completa o subject de destruição.

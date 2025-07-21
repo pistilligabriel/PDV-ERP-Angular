@@ -37,12 +37,13 @@
       </ng-template>
     </p-table>
     <p-dialog header="Produtos Cadastrados" [(visible)]="mostrarDialogProdutos" [modal]="true"
-      [style]="{width: '50vw'}">
+      [style]="{width: '70vw'}">
       <p-table [value]="catalogo">
         <ng-template pTemplate="header">
           <tr>
             <th>Código</th>
             <th>Descrição</th>
+            <th>Tipo Produto</th>
             <th>Estoque</th>
             <th>Unitário</th>
             <th>Ação</th>
@@ -52,6 +53,7 @@
           <tr>
             <td>{{ produto.codigo }}</td>
             <td>{{ produto.descricao }}</td>
+            <td>{{ produto.tipoProduto }}</td>
             <td>{{ produto.estoque }}</td>
             <td>R$ {{ produto.precoVenda | number: '1.2-2' }}</td>
             <td>
