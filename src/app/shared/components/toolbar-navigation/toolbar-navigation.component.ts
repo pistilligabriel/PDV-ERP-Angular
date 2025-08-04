@@ -1,31 +1,41 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
 import { MenuItem } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
+import { Subject, takeUntil } from 'rxjs';
+import { Usuario } from 'src/app/modules/cadastro/usuario/page/usuario.component';
 import { Config } from 'src/app/modules/configuracoes/configuracoes.component';
+import { UsuarioContextService } from 'src/app/services/cadastro/usuario/usuario-context.service';
+import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
 import { ConfigService } from 'src/app/services/configuracoes/configuracoes.service';
 
 @Component({
   selector: 'app-toolbar-navigation',
   templateUrl: './toolbar-navigation.component.html',
-  styleUrls: ['./toolbar-navigation.component.css']
+  styleUrls: ['./toolbar-navigation.component.css'],
 })
-export class ToolbarNavigationComponent implements OnInit {
+export class ToolbarNavigationComponent implements OnInit, OnDestroy {
+  private destroy$: Subject<void> = new Subject<void>();
 
-  logo!: string
+  logo!: string;
 
-  nomeEmpresa!: string
+  nomeEmpresa!: string;
 
-  infoConfig!: Config
+  infoConfig!: Config;
 
   items: MenuItem[] | undefined;
+  
+  usuarioLogado!: Usuario | null;
 
   constructor(
     private cookie: CookieService,
     private router: Router,
+    private usuarioService: UsuarioService,
+    private usuarioContext: UsuarioContextService,
     private configService: ConfigService
-  ) { }
+  ) {}
+ 
 
   ngOnInit(): void {
     this.items = [
@@ -72,8 +82,8 @@ export class ToolbarNavigationComponent implements OnInit {
           {
             label: 'Estoque',
             icon: 'pi pi-fw pi-box',
-            routerLink: ['/billing/stock']
-          }
+            routerLink: ['/billing/stock'],
+          },
         ],
       },
       // {
@@ -111,12 +121,16 @@ export class ToolbarNavigationComponent implements OnInit {
       {
         label: 'Configuração',
         icon: 'pi pi-fw pi-database',
-        routerLink: ['/configuracoes']
-      }
+        routerLink: ['/configuracoes'],
+      },
     ];
+
 
     this.getNomeEmpresa();
     this.obterInformacoes();
+    this.usuarioContext.getUsuario().subscribe(usuario => {
+      this.usuarioLogado = usuario;
+    })
   }
 
   venda() {
@@ -128,28 +142,56 @@ export class ToolbarNavigationComponent implements OnInit {
   }
 
   handleLogout(): void {
+    console.log(this.usuarioLogado?.codigo)
+    if (this.usuarioLogado && this.usuarioLogado.codigo !== undefined) {
+      this.usuarioService.logoutUser(this.usuarioLogado.codigo).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (response) => {
+          console.log('Token deletado com sucesso',response)        
+        },
+        error: (e) => {
+          console.error('Não foi possível deletar token',e)
+        }
+      });
+    }
+    // Limpar todos os dados de autenticação
     this.cookie.delete('token');
-    void this.router.navigate(['/login']);
+
+    // Limpar localStorage se houver dados salvos
+    localStorage.clear();
+
+    // Limpar sessionStorage se houver dados salvos
+    sessionStorage.clear();
+
+
+    // Forçar reload da página para limpar qualquer estado em memória
+    // window.location.href = '/login';
   }
 
   getNomeEmpresa() {
-    this.configService.getConfig().subscribe(config => {
+    this.configService.getConfig().subscribe((config) => {
       this.nomeEmpresa = config.nomeEmpresa;
     });
   }
 
   obterInformacoes(): void {
-    this.configService.getLogo().subscribe(blob => {
-      console.log('Blob recebido:', blob);
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.logo = reader.result as string;
-      };
-      reader.readAsDataURL(blob);
-    }, error => {
-      console.error('Erro ao carregar logo', error);
-      this.logo = 'assets/default-logo.png';
-    });
+    this.configService.getLogo().subscribe(
+      (blob) => {
+        console.log('Blob recebido:', blob);
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.logo = reader.result as string;
+        };
+        reader.readAsDataURL(blob);
+      },
+      (error) => {
+        console.error('Erro ao carregar logo', error);
+        this.logo = 'assets/default-logo.png';
+      }
+    );
   }
 
+   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 }

@@ -36,15 +36,18 @@
         </tr>
       </ng-template>
     </p-table>
-    <p-dialog header="Produtos Cadastrados" [(visible)]="mostrarDialogProdutos" [modal]="true"
+    <p-dialog header="Produtos Cadastrados" (onHide)="clearPesquisa()" [draggable]="false" [(visible)]="mostrarDialogProdutos" [modal]="true"
       [style]="{width: '70vw'}">
-      <p-table [value]="catalogo">
+      <p-table #tabelaProdutoDialog [value]="catalogoFiltrado" [globalFilterFields]="['codigo','descricao']">
         <ng-template pTemplate="header">
+          <input class="mb-4" [style]="{width:'200px'}" pInputText type="text" [(ngModel)]="valorPesquisa" (input)="applyFilterGlobal($event, 'contains')"
+            placeholder="Pesquisar" />
           <tr>
             <th>Código</th>
             <th>Descrição</th>
             <th>Tipo Produto</th>
             <th>Estoque</th>
+            <th>Custo</th>
             <th>Unitário</th>
             <th>Ação</th>
           </tr>
@@ -55,6 +58,7 @@
             <td>{{ produto.descricao }}</td>
             <td>{{ produto.tipoProduto }}</td>
             <td>{{ produto.estoque }}</td>
+            <td>R$ {{ produto.precoCusto | number: '1.2-2' }}</td>
             <td>R$ {{ produto.precoVenda | number: '1.2-2' }}</td>
             <td>
               <button pButton type="button" label="Selecionar" (click)="selecionarProduto(produto)"></button>
@@ -63,14 +67,14 @@
         </ng-template>
       </p-table>
     </p-dialog>
-    <p-dialog header="Desconto" [(visible)]="mostrarDesconto" [modal]="true">
+    <p-dialog header="Desconto" [draggable]="false" [(visible)]="mostrarDesconto" [modal]="true">
       <div class="p-float-label flex flex-column mr-4 mt-4 mb-4">
         <input pInputText [(ngModel)]="valorDesconto" />
         <label for="float-label">Desconto(%)</label>
       </div>
       <p-button class="mr-2" (onClick)="aplicarDesconto()" type="submit" label="Confirmar"></p-button>
     </p-dialog>
-    <p-dialog header="Clientes Cadastrados" [(visible)]="mostrarDialogClientes" [modal]="true"
+    <p-dialog header="Clientes Cadastrados" [draggable]="false" [(visible)]="mostrarDialogClientes" [modal]="true"
       [style]="{width: '50vw'}">
       <p-table [value]="clientes">
         <ng-template pTemplate="header">
@@ -92,14 +96,14 @@
         </ng-template>
       </p-table>
     </p-dialog>
-    <p-dialog header="Parcelamento" [(visible)]="mostrarDialogCartaoPrazo" [modal]="true">
+    <p-dialog header="Parcelamento" [draggable]="false" [(visible)]="mostrarDialogCartaoPrazo" [modal]="true">
       <div class="p-float-label flex flex-column mr-4 mt-4 mb-4">
         <input pInputText [(ngModel)]="parcelas" />
         <label for="float-label">Parcelas</label>
       </div>
       <p-button class="mr-2" (onClick)="cartaoAPrazo()" type="submit" label="Confirmar"></p-button>
     </p-dialog>
-    <p-dialog header="Quantidade" [(visible)]="mostrarDialogQuantidade" [modal]="true">
+    <p-dialog header="Quantidade" [draggable]="false" [(visible)]="mostrarDialogQuantidade" [modal]="true">
       <div class="p-float-label flex flex-column mr-4 mt-4 mb-4">
         <input pInputText type="number" [(ngModel)]="quantidade" />
         <label for="float-label">Quantidade</label>
@@ -110,8 +114,12 @@
 
     <!-- Rodapé -->
     <div class="pdv-footer">
+      <div>
+        Tipo Venda: {{tipoVenda}}
+      </div>
       <div class="info">
-        {{cliente?.tipoDocumento || "CPF"}}: {{ cliente?.documento || "Não identificado" }} | Cliente: {{cliente?.nomeCompleto || "Cliente não identificado"}}
+        {{cliente?.tipoDocumento || "CPF"}}: {{ cliente?.documento || "Não identificado" }} | Cliente:
+        {{cliente?.nomeCompleto || "Cliente não identificado"}}
       </div>
       <div>
         Desconto aplicado: R$ {{ descontoAplicado | number: '1.2-2' }}
@@ -126,8 +134,10 @@
       <button pButton label="💵 Pix" class="p-button-secondary" (click)="pix()"></button>
       <button pButton label="💵 Dinheiro" class="p-button-secondary" (click)="dinheiro()"></button>
       <button pButton label="💳 Cartão Débito" class="p-button-secondary" (click)="cartaoDebito()"></button>
-      <button pButton label="💳 Cartão Crédito à vista" class="p-button-secondary" (click)="cartaoCreditoAVista()"></button>
-      <button pButton label="💳 Cartão Crédito parcelado" class="p-button-secondary" (click)="mostrarTelaCartaoPrazo()"></button>
+      <button pButton label="💳 Cartão Crédito à vista" class="p-button-secondary"
+        (click)="cartaoCreditoAVista()"></button>
+      <button pButton label="💳 Cartão Crédito parcelado" class="p-button-secondary"
+        (click)="mostrarTelaCartaoPrazo()"></button>
     </div>
   </div>
 </div>
