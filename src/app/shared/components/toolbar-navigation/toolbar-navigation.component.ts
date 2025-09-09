@@ -9,6 +9,7 @@ import { Config } from 'src/app/modules/configuracoes/configuracoes.component';
 import { UsuarioContextService } from 'src/app/services/cadastro/usuario/usuario-context.service';
 import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
 import { ConfigService } from 'src/app/services/configuracoes/configuracoes.service';
+import { VendaDialogService } from 'src/app/services/faturamento/venda/VendaDialogService.service';
 
 @Component({
   selector: 'app-toolbar-navigation',
@@ -16,9 +17,14 @@ import { ConfigService } from 'src/app/services/configuracoes/configuracoes.serv
   styleUrls: ['./toolbar-navigation.component.css'],
 })
 export class ToolbarNavigationComponent implements OnInit, OnDestroy {
+  
+  goHome() {
+    this.router.navigate(['/home'])
+  }
+  
   private destroy$: Subject<void> = new Subject<void>();
 
-  logo!: File|string;
+  logo!: File | string;
 
   nomeEmpresa!: string;
 
@@ -33,7 +39,8 @@ export class ToolbarNavigationComponent implements OnInit, OnDestroy {
     private router: Router,
     private usuarioService: UsuarioService,
     private usuarioContext: UsuarioContextService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private vendaDialogService: VendaDialogService
   ) {}
 
   ngOnInit(): void {
@@ -141,7 +148,11 @@ export class ToolbarNavigationComponent implements OnInit, OnDestroy {
 
   venda() {
     if (this.cookie.check('token')) {
-      void this.router.navigate(['/faturamento/venda']);
+      this.router.navigate(['/faturamento/modulo-vendas']).then(() => {
+        setTimeout(() => {
+          this.vendaDialogService.abrirDialog();
+        });
+      });
     } else {
       void this.router.navigate(['/login']);
     }

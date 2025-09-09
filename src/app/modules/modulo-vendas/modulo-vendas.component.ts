@@ -19,6 +19,7 @@ import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.servic
 import { Tipo } from 'src/app/models/enums/users/Tipo.enum';
 import { CookieService } from 'ngx-cookie-service';
 import { UsuarioContextService } from 'src/app/services/cadastro/usuario/usuario-context.service';
+import { VendaDialogService } from 'src/app/services/faturamento/venda/VendaDialogService.service';
 
 registerLocaleData(localePt, 'pt-BR');
 
@@ -96,14 +97,19 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
   constructor(
     private vendaService: VendaService,
     private messageService: MessageService,
-    private usuarioService: UsuarioService,
     private usuarioContext: UsuarioContextService,
     private cookie: CookieService,
     private router: Router,
-    private vendaContext: VendaContextService
+    private vendaContext: VendaContextService,
+    private vendaDialogService: VendaDialogService
   ) {}
 
   ngOnInit() {
+
+    this.vendaDialogService.abrirDialog$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+    this.abrirDialogTipoVenda();
+  });
+
     this.listarVendas();
 
     this.usuarioContext.getUsuario().subscribe({

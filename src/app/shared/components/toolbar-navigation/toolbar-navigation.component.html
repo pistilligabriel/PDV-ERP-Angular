@@ -5,8 +5,8 @@
     <p-tieredMenu #menu [model]="items" [popup]="true"></p-tieredMenu>
   </div>
 
-  <div class="p-toolbar-group-center info-empresa">
-    <img [style]="{width: '80px'}" [src]=logo alt="logo">
+  <div class="p-toolbar-group-center info-empresa cursor-pointer">
+    <img (click)="goHome()" [style]="{width: '80px'}" [src]=logo alt="logo">
     <p>{{nomeEmpresa}}</p>
   </div>
 
@@ -14,5 +14,6 @@
     <p-button class="mr-5" label="Vender" icon="pi pi-cart-plus" styleClass="p-button-success" (onClick)="venda()"  ></p-button>
     <p-button icon="pi pi-sign-out" styleClass="p-button-danger" (onClick)="handleLogout()" ></p-button>
   </div>
+  
 
 </p-toolbar>
