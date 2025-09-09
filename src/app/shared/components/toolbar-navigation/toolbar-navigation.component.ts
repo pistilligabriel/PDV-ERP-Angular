@@ -18,14 +18,14 @@ import { ConfigService } from 'src/app/services/configuracoes/configuracoes.serv
 export class ToolbarNavigationComponent implements OnInit, OnDestroy {
   private destroy$: Subject<void> = new Subject<void>();
 
-  logo!: string;
+  logo!: File|string;
 
   nomeEmpresa!: string;
 
   infoConfig!: Config;
 
   items: MenuItem[] | undefined;
-  
+
   usuarioLogado!: Usuario | null;
 
   constructor(
@@ -35,7 +35,6 @@ export class ToolbarNavigationComponent implements OnInit, OnDestroy {
     private usuarioContext: UsuarioContextService,
     private configService: ConfigService
   ) {}
- 
 
   ngOnInit(): void {
     this.items = [
@@ -125,12 +124,19 @@ export class ToolbarNavigationComponent implements OnInit, OnDestroy {
       },
     ];
 
+    this.configService.empresa$.subscribe((config) => {
+      if (config) {
+        this.nomeEmpresa = config.nomeEmpresa;
+        this.logo = config.logo || 'assets/default-logo.png';
+      } else {
+        this.getNomeEmpresa();
+        this.obterInformacoes();
+      }
+    });
 
-    this.getNomeEmpresa();
-    this.obterInformacoes();
-    this.usuarioContext.getUsuario().subscribe(usuario => {
+    this.usuarioContext.getUsuario().subscribe((usuario) => {
       this.usuarioLogado = usuario;
-    })
+    });
   }
 
   venda() {
@@ -142,16 +148,19 @@ export class ToolbarNavigationComponent implements OnInit, OnDestroy {
   }
 
   handleLogout(): void {
-    console.log(this.usuarioLogado?.codigo)
+    console.log(this.usuarioLogado?.codigo);
     if (this.usuarioLogado && this.usuarioLogado.codigo !== undefined) {
-      this.usuarioService.logoutUser(this.usuarioLogado.codigo).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (response) => {
-          console.log('Token deletado com sucesso',response)        
-        },
-        error: (e) => {
-          console.error('Não foi possível deletar token',e)
-        }
-      });
+      this.usuarioService
+        .logoutUser(this.usuarioLogado.codigo)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            console.log('Token deletado com sucesso', response);
+          },
+          error: (e) => {
+            console.error('Não foi possível deletar token', e);
+          },
+        });
     }
     // Limpar todos os dados de autenticação
     this.cookie.delete('token');
@@ -162,9 +171,8 @@ export class ToolbarNavigationComponent implements OnInit, OnDestroy {
     // Limpar sessionStorage se houver dados salvos
     sessionStorage.clear();
 
-
     // Forçar reload da página para limpar qualquer estado em memória
-    // window.location.href = '/login';
+    window.location.href = '/login';
   }
 
   getNomeEmpresa() {
@@ -190,7 +198,7 @@ export class ToolbarNavigationComponent implements OnInit, OnDestroy {
     );
   }
 
-   ngOnDestroy(): void {
+  ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }

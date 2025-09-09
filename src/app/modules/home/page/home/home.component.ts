@@ -1,8 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { Usuario } from 'src/app/modules/cadastro/usuario/page/usuario.component';
+import { Config } from 'src/app/modules/configuracoes/configuracoes.component';
 import { UsuarioContextService } from 'src/app/services/cadastro/usuario/usuario-context.service';
 import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
+import { ConfigService } from 'src/app/services/configuracoes/configuracoes.service';
 
 @Component({
   selector: 'app-home',
@@ -13,6 +15,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   private destroy$: Subject<void> = new Subject<void>();
 
   usuario!: Usuario;
+
+  config!: Config;
 
   constructor(
     private service: UsuarioService,
@@ -30,6 +34,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         console.log('Não foi possível obter o usuário logado', e);
       },
     });
+
   }
 
   ngOnDestroy(): void {

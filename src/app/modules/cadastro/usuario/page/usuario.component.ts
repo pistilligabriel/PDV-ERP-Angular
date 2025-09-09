@@ -269,6 +269,33 @@ export class UsuarioComponent implements OnInit, OnDestroy {
     return !!this.userForm.getRawValue().codigo;
   }
 
+  visualizarUsuario(usuario:Usuario){
+    console.log(usuario)
+    this.showForm = true
+    this.usuarioService.getUsuarioEspecifico(usuario.codigo).subscribe({
+      next:(usuario) => {
+        this.userForm.patchValue({
+          codigo:usuario.codigo,
+          nomeCompleto:usuario.nomeCompleto,
+          tipo:usuario.tipo,
+          
+        })
+      }
+    })
+    this.userForm.get('codigo')?.disable()
+    this.userForm.get('nomeCompleto')?.disable()
+    this.userForm.get('tipo')?.disable()
+    this.userForm.get('telefone')?.disable()
+    this.userForm.get('email')?.disable()
+    this.userForm.get('documento')?.disable()
+    this.userForm.get('login')?.disable()
+    this.userForm.get('status')?.disable()
+    this.userForm.get('empresa')?.disable()
+    this.userForm.get('versao')?.disable()
+    this.userForm.get('dataCadastro')?.disable()
+    this.userForm.get('password')?.disable()
+  }
+
   /**
  * Manipulador de eventos para o botão de adição de grupo.
  * Exibe o formulário de adição de grupo.

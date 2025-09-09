@@ -274,6 +274,7 @@ export class VendaComponent implements OnInit {
       porcentagemDesconto: this.porcentagemDesconto,
       parcelas: this.parcelas as number,
       desconto: this.descontoAplicado as number,
+      
       total: this.total,
       totalSemDesconto: this.totalSemDesconto // Inclui o total sem desconto
     };

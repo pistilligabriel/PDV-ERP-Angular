@@ -15,7 +15,7 @@ private JWT_TOKEN = this.cookie.get('token');
 private httpOptions = {
   headers: new HttpHeaders({
     'Content-Type': 'application/json',
-    Authorization: `${this.JWT_TOKEN}`,
+    Authorization: `Bearer ${this.JWT_TOKEN}`,
   }),
 };
 

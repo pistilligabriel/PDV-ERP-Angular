@@ -115,6 +115,7 @@
                     <td> R${{ venda?.pedidoDto?.desconto | number: '1.2-2' }} </td>
                     <td> R${{ venda?.pedidoDto?.total | number: '1.2-2' }} </td>
                     <td> {{ venda?.pedidoDto?.formaPagamento }} </td>
+                    <td> {{ venda?.pedidoDto?.parcelas == 0 ? "À Vista" : venda?.pedidoDto?.parcelas  }} </td>
                     <td *ngIf="usuario?.tipo === tipo.ADMIN"> {{ venda?.pedidoDto?.lucro | number: '1.2-2' }}% </td>
                     <ng-template #statusColumn>
                       <td>

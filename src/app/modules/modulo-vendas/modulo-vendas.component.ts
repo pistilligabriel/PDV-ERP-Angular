@@ -28,8 +28,6 @@ registerLocaleData(localePt, 'pt-BR');
   styleUrls: ['./modulo-vendas.component.css'],
 })
 export class ModuloVendasComponent implements OnInit, OnDestroy {
-
-
   items: MenuItem[] | undefined;
 
   // Informações do usuário logado
@@ -39,7 +37,7 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
 
   @ViewChild('tabelaVenda') tabelaVenda: Table | undefined;
 
-  @ViewChild('cm') cm !: ContextMenu;
+  @ViewChild('cm') cm!: ContextMenu;
 
   /**
    * Flag para exibir ou ocultar o formulário de grupo de usuário.
@@ -50,7 +48,6 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
    * Lista de dados de vendas.
    */
   public vendasDatas: ResponseModuloVendaDto[] = [];
-
 
   /**
    * Venda selecionada
@@ -81,12 +78,12 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
    * @returns {void}
    */
   clear(table: Table) {
-    this.valorPesquisa = ""
+    this.valorPesquisa = '';
     table.clear();
   }
 
   atualizarTabela() {
-    this.valorPesquisa = "";
+    this.valorPesquisa = '';
     this.listarVendas();
   }
 
@@ -101,36 +98,33 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
     private messageService: MessageService,
     private usuarioService: UsuarioService,
     private usuarioContext: UsuarioContextService,
-    private cookie:CookieService,
+    private cookie: CookieService,
     private router: Router,
     private vendaContext: VendaContextService
-  ) { }
-
-
+  ) {}
 
   ngOnInit() {
     this.listarVendas();
-    
-    
+
     this.usuarioContext.getUsuario().subscribe({
       next: (usuario) => {
-        this.usuario = usuario
-        console.log(this.usuario)
-        this.inicializarColunas()
+        this.usuario = usuario;
+        console.log(this.usuario);
+        this.inicializarColunas();
       },
       error: (e) => {
-        console.log('Não foi possível obter o usuário logado', e)
-        this.inicializarColunas()
-      }
-    })
-    
-    if(!this.cookie.check('token')){
-      console.log('verificação token')
-      return
+        console.log('Não foi possível obter o usuário logado', e);
+        this.inicializarColunas();
+      },
+    });
+
+    if (!this.cookie.check('token')) {
+      console.log('verificação token');
+      return;
     }
   }
 
-  private inicializarColunas(){
+  private inicializarColunas() {
     this.cols = [
       { field: 'status', header: 'Status' },
       { field: 'dataEmissao', header: 'Data Emissão' },
@@ -138,13 +132,12 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
       { field: 'valorBruto', header: 'Total Bruto' },
       { field: 'desconto', header: 'Desconto' },
       { field: 'valorTotal', header: 'Valor Total' },
-      { field: 'formaPagamento', header: 'Forma Pagamento' }
+      { field: 'formaPagamento', header: 'Forma Pagamento' },
+      { field: 'parcelas', header: 'Parcelas' },
     ];
 
-    if(this.usuario?.tipo === this.tipo.ADMIN){
-      this.cols.push(
-        {field:'lucro',header:'Lucro'}
-      )
+    if (this.usuario?.tipo === this.tipo.ADMIN) {
+      this.cols.push({ field: 'lucro', header: 'Lucro' });
     }
 
     this.colunasSelecionadas = this.cols;
@@ -155,44 +148,48 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
         icon: 'pi pi-block',
         command: () => {
           this.cancelarVenda();
-        }
+        },
       },
-    ]
+    ];
 
     this.items = [
       {
         label: 'Cancelar Venda',
         icon: 'pi pi-ban',
-        command: () => { this.cancelarVenda() }
-      }
-    ]
-
-    
+        command: () => {
+          this.cancelarVenda();
+        },
+      },
+    ];
   }
 
   cancelarVenda() {
     if (this.vendaAtual && this.vendaAtual.codigo !== undefined) {
-      this.vendaService.cancelarVenda(this.vendaAtual.codigo).pipe(takeUntil(this.destroy$)).subscribe({
-        next: (response) => {
-          if (response) {
-            console.log('Sucesso ao Alterar o Status!:', response);
+      this.vendaService
+        .cancelarVenda(this.vendaAtual.codigo)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            if (response) {
+              console.log('Sucesso ao Alterar o Status!:', response);
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Sucesso',
+                detail: 'Venda cancelada com sucesso!',
+                life: 5000,
+              });
+              this.listarVendas();
+            }
+          },
+          error: (err) => {
             this.messageService.add({
-              severity: 'success',
-              summary: 'Sucesso',
-              detail: 'Venda cancelada com sucesso!',
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Não foi possível cancelar venda!',
               life: 5000,
             });
-            this.listarVendas();
-          }
-        }, error: (err) => {
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Não foi possível cancelar venda!',
-            life: 5000,
-          });
-        }
-      });
+          },
+        });
     } else {
       this.messageService.add({
         severity: 'warn',
@@ -210,9 +207,11 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
    * @param stringVal O valor da string para filtrar.
    */
   applyFilterGlobal($event: any, stringVal: any) {
-    this.tabelaVenda!.filterGlobal(($event.target as HTMLInputElement).value, stringVal);
+    this.tabelaVenda!.filterGlobal(
+      ($event.target as HTMLInputElement).value,
+      stringVal
+    );
   }
-
 
   /**
    * Exporta os dados da tabela para um arquivo PDF.
@@ -224,17 +223,25 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
 
         // Monta os dados dos produtos de cada pedido
         const pedidos: any[] = [];
-        this.vendasDatas.forEach(venda => {
+        this.vendasDatas.forEach((venda) => {
           if (venda.pedidoDto && venda.pedidoDto.produtos) {
-            venda.pedidoDto.produtos.forEach(produto => {
+            venda.pedidoDto.produtos.forEach((produto) => {
               pedidos.push({
                 CodigoVenda: venda.codigo,
                 Cliente: venda.pedidoDto.integrante.nomeCompleto,
                 DataEmissao: venda.pedidoDto.dataEmissao,
                 Produto: produto.descricao,
                 Quantidade: produto.quantidade,
-                ValorUnitario: (produto?.precoVenda ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-                ValorTotal: ((produto?.precoVenda ?? 0) * produto.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                ValorUnitario: (produto?.precoVenda ?? 0).toLocaleString(
+                  'pt-BR',
+                  { style: 'currency', currency: 'BRL' }
+                ),
+                ValorTotal: (
+                  (produto?.precoVenda ?? 0) * produto.quantidade
+                ).toLocaleString('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                }),
               });
             });
           }
@@ -248,13 +255,15 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
           { header: 'Produto', dataKey: 'Produto' },
           { header: 'Quantidade', dataKey: 'Quantidade' },
           { header: 'Valor Unitário', dataKey: 'ValorUnitario' },
-          { header: 'Valor Total', dataKey: 'ValorTotal' }
+          { header: 'Valor Total', dataKey: 'ValorTotal' },
+          { header: 'Forma Pagamento', datakey:'FormaPagamento'},
+          { header: 'Parcelas', datakey:'Parcelas'},
         ];
 
         (doc as any).autoTable({
           columns: columns,
           body: pedidos,
-          styles: { fontSize: 8 }
+          styles: { fontSize: 8 },
         });
 
         doc.save('vendas_pedidos.pdf');
@@ -268,17 +277,22 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
   exportExcel() {
     import('xlsx').then((xlsx) => {
       const pedidos: any[] = [];
-      this.vendasDatas.forEach(venda => {
+      this.vendasDatas.forEach((venda) => {
         if (venda.pedidoDto && venda.pedidoDto.produtos) {
-          venda.pedidoDto.produtos.forEach(produto => {
+          venda.pedidoDto.produtos.forEach((produto) => {
             pedidos.push({
               'Código Venda': venda.codigo,
-              'Cliente': venda.pedidoDto.integrante.nomeCompleto,
+              Cliente: venda.pedidoDto.integrante.nomeCompleto,
               'Data Emissão': venda.pedidoDto.dataEmissao,
-              'Produto': produto.descricao,
-              'Quantidade': produto.quantidade,
-              'Valor Unitário': (produto?.precoVenda ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-              'Valor Total': ((produto?.precoVenda ?? 0) * produto.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+              Produto: produto.descricao,
+              Quantidade: produto.quantidade,
+              'Valor Unitário': (produto?.precoVenda ?? 0).toLocaleString(
+                'pt-BR',
+                { style: 'currency', currency: 'BRL' }
+              ),
+              'Valor Total': (
+                (produto?.precoVenda ?? 0) * produto.quantidade
+              ).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
             });
           });
         }
@@ -308,11 +322,11 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
   }
 
   /**
- * Retorna a severidade com base no status fornecido.
- *
- * @param {string} status - Status a ser avaliado.
- * @returns {string} - Severidade correspondente.
- */
+   * Retorna a severidade com base no status fornecido.
+   *
+   * @param {string} status - Status a ser avaliado.
+   * @returns {string} - Severidade correspondente.
+   */
   getSeverity(status: string) {
     switch (status) {
       case 'ATIVO':
@@ -331,7 +345,7 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
       case 'FINALIZADO':
         return 'row-finalizado';
       default:
-        return ''
+        return '';
     }
   }
 
@@ -347,18 +361,17 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
   }
 
   abrirDialogTipoVenda() {
-    console.log('abrir dialog')
+    console.log('abrir dialog');
     this.mostrarDialogTipoVenda = true;
   }
 
   selecionarTipo(tipo: 'NOVO' | 'RECAPAGEM') {
-    console.log('Adicionar venda')
-    this.vendaContext.setTipoVenda(tipo)
-    console.log(tipo)
+    console.log('Adicionar venda');
+    this.vendaContext.setTipoVenda(tipo);
+    console.log(tipo);
     this.mostrarDialogTipoVenda = false;
     this.router.navigate(['faturamento/venda']);
   }
-
 
   cancelarFormulario() {
     this.showForm = false;
@@ -393,7 +406,7 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
   }
 
   verProdutos(venda: bigint) {
-    this.vendaAtual = this.vendasDatas.find(v => v.codigo === venda) || null;
+    this.vendaAtual = this.vendasDatas.find((v) => v.codigo === venda) || null;
     this.produtosSelecionados = this.vendaAtual?.pedidoDto?.produtos || [];
     this.mostrarDialogProdutos = true;
   }
@@ -415,6 +428,4 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
-
 }
