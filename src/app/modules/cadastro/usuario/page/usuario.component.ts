@@ -278,7 +278,15 @@ export class UsuarioComponent implements OnInit, OnDestroy {
           codigo:usuario.codigo,
           nomeCompleto:usuario.nomeCompleto,
           tipo:usuario.tipo,
-          
+          telefone:usuario.telefone,
+          email:usuario.email,
+          documento:usuario.documento,
+          login:usuario.login,
+          status:usuario.status,
+          empresa:1,
+          dataCadastro:usuario.dataCadastro,
+          password:'*******',
+          versao:usuario.versao
         })
       }
     })
