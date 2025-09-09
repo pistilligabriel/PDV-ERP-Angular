@@ -175,7 +175,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
   public produtoForm = this.formBuilderProduto.group({
     codigo: [{ value: null as bigint | null, disabled: true }],
     descricao: ['', [Validators.required]],
-    tipoProduto:[ null as Tipo | null , [Validators.required]],
+    tipoProduto:[ null as TipoProduto | null , [Validators.required]],
     observacao: [''],
     fabricante: [null as bigint | null, [Validators.required]],
     modelo: [''],
@@ -461,6 +461,44 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     }
   }
 
+  visualizarProduto(produto:Produto){
+    
+    this.showForm = true
+    this.produtoService.getProdutoEspecifico(produto.codigo).subscribe({
+      next: (p) => {
+        let lucro = (p.precoVenda-p.precoCusto) / p.precoVenda * 100
+        this.produtoForm.patchValue({
+          codigo:p.codigo,
+          descricao:p.descricao,
+          tipoProduto:p.tipoProduto,
+          observacao:p.observacao,
+          modelo:p.modelo,
+          fabricante:p.fabricante.codigo,
+          unidadeVenda:p.unidadeVenda?.codigo,
+          precoCusto:p.precoCusto,
+          estoque:p.estoque,
+          precoVenda:p.precoVenda,
+          margemLucro:lucro,
+          status:p.status,
+          empresa:1,
+          versao:p.versao,
+          dataCadastro:p.dataCadastro
+        })
+        console.log(p)
+      }
+    })
+    this.produtoForm.get('descricao')?.disable()
+    this.produtoForm.get('tipoProduto')?.disable()
+    this.produtoForm.get('observacao')?.disable()
+    this.produtoForm.get('modelo')?.disable()
+    this.produtoForm.get('fabricante')?.disable()
+    this.produtoForm.get('unidadeVenda')?.disable()
+    this.produtoForm.get('precoCusto')?.disable()
+    this.produtoForm.get('estoque')?.disable()
+    this.produtoForm.get('precoVenda')?.disable()
+    this.produtoForm.get('margemLucro')?.disable()
+  }
+  
   /**
   * Manipulador de eventos para o botão de adição de grupo.
   * Exibe o formulário de adição de grupo.
@@ -529,7 +567,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         this.produtoForm.patchValue({
           codigo: data.codigo,
           descricao: data.descricao,
-          tipoProduto:data.tipoProduto as Tipo | null,
+          tipoProduto:data.tipoProduto as TipoProduto | null,
           observacao: data.observacao,
           unidadeVenda: data.unidadeVenda?.codigo as bigint,
           fabricante: data.fabricante?.codigo as bigint,
@@ -591,7 +629,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
           this.produtoForm.patchValue({
             codigo: response.codigo,
             descricao: response.descricao,
-            tipoProduto:response.tipoProduto as Tipo | null,
+            tipoProduto:response.tipoProduto as TipoProduto | null,
             fabricante: response.fabricante.codigo,
             unidadeVenda: response.unidadeVenda?.codigo,
             precoCusto: response.precoCusto,

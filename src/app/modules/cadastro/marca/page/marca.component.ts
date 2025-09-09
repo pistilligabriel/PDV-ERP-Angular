@@ -218,6 +218,22 @@ export class MarcaComponent implements OnInit, OnDestroy {
     return !!this.marcaForm.value.codigo;
   }
 
+  visualizarMarca(marca:Marca){
+    this.showForm = true;
+    this.marcaService.getMarcaEspecifica(marca.codigo).subscribe({
+      next: (m) => {
+        this.marcaForm.patchValue({
+          codigo:m.codigo,
+          descricao:m.descricao,
+          empresa:1,
+          status:m.status,
+          versao:m.versao
+        })
+      }
+    })
+    this.marcaForm.get('descricao')?.disable()
+  }
+
     /**
    * Manipulador de eventos para o botão de adição de grupo.
    * Exibe o formulário de adição de grupo.

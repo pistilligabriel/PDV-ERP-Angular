@@ -228,6 +228,25 @@ export class UnidadeMedidaComponent implements OnInit, OnDestroy {
     return !!this.unidadeForm.value.codigo;
   }
 
+visualizarUnidade(unidade:UnidadeMedida){
+  this.showForm = true;
+  this.unidadeService.getUnidadeEspecifica(unidade.codigo).subscribe({
+    next: (u) => {
+      this.unidadeForm.patchValue({
+        codigo: u.codigo,
+        descricao:u.descricao,
+        simbolo: u.simbolo,
+        status:u.status,
+        empresa:1,
+        versao:u.versao
+      })
+    }
+  })
+  this.unidadeForm.get('descricao')?.disable()
+  this.unidadeForm.get('simbolo')?.disable()
+}
+
+
   /**
  * Manipulador de eventos para o botão de adição de grupo.
  * Exibe o formulário de adição de grupo.
