@@ -1,28 +1,21 @@
-import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, catchError } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { CookieService } from 'ngx-cookie-service';
+import { Observable } from 'rxjs';
+import { Tipo } from 'src/app/models/enums/users/Tipo.enum';
+import { AdicionarUsuario } from 'src/app/models/interfaces/usuario/AdicionarUsuario';
 import { AuthRequest } from 'src/app/models/interfaces/usuario/auth/AuthRequest';
 import { AuthResponse } from 'src/app/models/interfaces/usuario/auth/AuthResponse';
-import { CookieService } from 'ngx-cookie-service';
-import { Usuarios } from 'src/app/models/interfaces/usuario/response/UsuariosResponse';
-import { AdicionarUsuario } from 'src/app/models/interfaces/usuario/AdicionarUsuario';
 import { EditarUsuario } from 'src/app/models/interfaces/usuario/EditarUsuario';
-import { environment } from 'src/environment/environment';
-import { UsuarioPerfil } from 'src/app/models/interfaces/usuario/UsuarioPerfil';
+import { Usuarios } from 'src/app/models/interfaces/usuario/response/UsuariosResponse';
 import { Usuario } from 'src/app/modules/cadastro/usuario/page/usuario.component';
+import { environment } from 'src/environment/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UsuarioService {
   private API_URL = environment.apiUrl;
-  private JWT_TOKEN = this.cookie.get('token');
-  private httpOptions = {
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${this.JWT_TOKEN}`,
-    }),
-  };
 
   constructor(private http: HttpClient, private cookie: CookieService) {}
 
@@ -43,14 +36,14 @@ export class UsuarioService {
   getUsuarioEspecifico(codigo: bigint): Observable<Usuarios> {
     return this.http.get<Usuarios>(
       `${this.API_URL}/usuarios/${codigo}`,
-      this.httpOptions
+      this.getHttpOptions()
     );
   }
 
   getAllUsuarios(): Observable<Array<Usuarios>> {
     return this.http.get<Array<Usuarios>>(
       `${this.API_URL}/usuarios`,
-      this.httpOptions
+      this.getHttpOptions()
     );
   }
 
@@ -58,7 +51,7 @@ export class UsuarioService {
     return this.http.post<Array<Usuarios>>(
       `${this.API_URL}/usuarios`,
       requestDatas,
-      this.httpOptions
+      this.getHttpOptions()
     );
   }
 
@@ -66,19 +59,41 @@ export class UsuarioService {
     return this.http.put<Array<Usuarios>>(
       `${this.API_URL}/usuarios`,
       requestDatas,
-      this.httpOptions
+      this.getHttpOptions()
     );
+  }
+
+  alterarTipo(codigo: bigint, tipo:Tipo):Observable<Usuarios>{
+    return this.http.patch<Usuarios>(`${this.API_URL}/usuarios/alterar-tipo/${codigo}`,JSON.stringify(tipo),this.getHttpOptions())
   }
   
 
   desativarUsuario(codigo: bigint): Observable<Array<Usuarios>> {
     return this.http.put<Array<Usuarios>>(
       `${this.API_URL}/usuarios/alterar-status/${codigo}`,
-      this.httpOptions
+      {},
+      this.getHttpOptions()
     );
   }
 
    getUsuarioLogado(): Observable<Usuario>{
-    return this.http.get<Usuario>(`${this.API_URL}/usuarios/perfil`,this.httpOptions)
+    return this.http.get<Usuario>(`${this.API_URL}/usuarios/perfil`, this.getHttpOptions())
+  }
+
+  logoutUser(codigo: bigint): Observable<Usuario> {
+    return this.http.patch<Usuario>(`${this.API_URL}/usuarios/logout/${codigo}`, null, this.getHttpOptions());
+  }
+
+  /**
+   * Método para obter headers HTTP atualizados com o token mais recente
+   */
+  private getHttpOptions() {
+    const token = this.cookie.get('token');
+    return {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      }),
+    };
   }
 }

@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { CookieService } from 'ngx-cookie-service';
 import { Observable } from 'rxjs';
-import { AdicionarProduto, EditarProduto, Produto } from 'src/app/modules/cadastro/produto/produto.component';
+import { AdicionarProduto, EditarProduto, EntradaAcertoEstoque, Produto } from 'src/app/modules/cadastro/produto/produto.component';
 import { ProdutoVenda } from 'src/app/modules/venda/venda.component';
 import { environment } from 'src/environment/environment';
 
@@ -15,7 +15,7 @@ private JWT_TOKEN = this.cookie.get('token');
 private httpOptions = {
   headers: new HttpHeaders({
     'Content-Type': 'application/json',
-    Authorization: `${this.JWT_TOKEN}`,
+    Authorization: `Bearer ${this.JWT_TOKEN}`,
   }),
 };
 
@@ -55,5 +55,9 @@ constructor(
 
  removerProduto(CODIGO:bigint):Observable<Array<Produto>>{
   return this.http.delete<Array<Produto>>(`${this.API_URL}/produtos/${CODIGO}`, this.httpOptions);
+ }
+
+ acertoEstoque(codigo:bigint,estoque:number):Observable<Produto>{
+  return this.http.patch<Produto>(`${this.API_URL}/produtos/acerto/${codigo}`,{estoque},this.httpOptions)
  }
 }

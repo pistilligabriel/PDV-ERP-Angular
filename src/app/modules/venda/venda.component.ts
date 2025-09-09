@@ -1,5 +1,5 @@
 import { registerLocaleData } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import localePt from '@angular/common/locales/pt'
 import { ProdutoService } from 'src/app/services/cadastro/produto/produto.service';
 import { Produto } from '../cadastro/produto/produto.component';
@@ -14,20 +14,25 @@ import { Status } from 'src/app/models/enums/Status.enum';
 import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
 import { Usuario } from '../cadastro/usuario/page/usuario.component';
 import { UsuarioPerfil } from 'src/app/models/interfaces/usuario/UsuarioPerfil';
+import { VendaContextService } from 'src/app/services/faturamento/venda/venda-context.service';
+import { Table } from 'primeng/table';
+import { TipoProduto } from 'src/app/models/enums/products/TipoProduto.enum';
 
 
 registerLocaleData(localePt, 'pt-BR');
 
 export interface PedidoDto {
   integrante: Clientes;
+  tipoVenda: 'NOVO' | 'RECAPAGEM',
   desconto: number;
   dataEmissao?: string;
-  status:Status;
+  status: Status;
   formaPagamento: FormaPagamento;
   parcelas: number;
   porcentagemDesconto?: number;
   total: number;
-  // lucro: number;
+  lucro?: number;
+  custo?: number;
   totalSemDesconto?: number;
   produtos: ItemDto[];
 }
@@ -35,11 +40,13 @@ export interface PedidoDto {
 export interface ProdutoVenda {
   codigo: bigint;
   descricao: string;
+  tipoProduto: TipoProduto;
   observacao: string | null;
   unidadeVenda: number | null; // alterado aqui
   fabricante: number | null; // alterado aqui
   modelo: string;
   precoVenda: number;
+  precoCusto: number;
   estoque: number | null;
   quantidade: number;
 }
@@ -53,9 +60,15 @@ export interface ProdutoVenda {
 export class VendaComponent implements OnInit {
 
 
+  @ViewChild('tabelaProdutoDialog') tabelaProdutoDialog: Table | undefined
+
+  tipoVenda: 'NOVO' | 'RECAPAGEM' | null = null;
+
   produtos: ProdutoVenda[] = [];
 
   codigoProduto!: bigint | null;
+
+  lucro!: number;
 
   quantidade: number = 1;
 
@@ -93,11 +106,20 @@ export class VendaComponent implements OnInit {
     private clienteService: ClienteService,
     private pedidoService: VendaService,
     private messageService: MessageService,
-    private router: Router
+    private router: Router,
+    private vendaContext: VendaContextService
   ) { }
 
 
   ngOnInit(): void {
+
+    this.tipoVenda = this.vendaContext.getTipoVenda();
+
+    if (!this.tipoVenda) {
+      // Redirecione ou exiba alerta, se desejar
+      console.warn('Tipo da venda não selecionado.');
+    }
+
     this.clienteService.getAllCliente().subscribe(c => {
       this.clientes = c;
     })
@@ -110,15 +132,40 @@ export class VendaComponent implements OnInit {
 
     console.log(this.catalogo)
 
-  //   this.usuarioService.getUsuarioLogado().subscribe({
-  //     next: (usuario) => {
-  //       this.usuario = usuario
-  //     },
-  //     error: (err) => {
-  //       console.log('Não foi possível obter usuario logado', err)
-  //     }
-  //   }
-  // )
+
+    //   this.usuarioService.getUsuarioLogado().subscribe({
+    //     next: (usuario) => {
+    //       this.usuario = usuario
+    //     },
+    //     error: (err) => {
+    //       console.log('Não foi possível obter usuario logado', err)
+    //     }
+    //   }
+    // )
+  }
+
+  valorPesquisa!: string;
+
+  applyFilterGlobal($event: any, stringVal: any) {
+    this.tabelaProdutoDialog!.filterGlobal(($event.target as HTMLInputElement).value, stringVal);
+  }
+
+  get catalogoFiltrado(): ProdutoVenda[] {
+    if (!this.tipoVenda || !this.catalogo) {
+      return this.catalogo || [];
+    }
+
+    return this.catalogo.filter(produto => {
+      // Ajuste a lógica de filtro conforme suas regras de negócio
+      switch (this.tipoVenda) {
+        case 'NOVO':
+          return produto.tipoProduto === TipoProduto.NOVO;
+        case 'RECAPAGEM':
+          return produto.tipoProduto === TipoProduto.RECAPAGEM;
+        default:
+          return true;
+      }
+    });
   }
 
   // Simulação de banco de produtos
@@ -205,11 +252,13 @@ export class VendaComponent implements OnInit {
     const produtosCorrigidos: ProdutoVenda[] = this.produtos.map(produto => ({
       codigo: produto.codigo,
       descricao: produto.descricao,
+      tipoProduto:produto.tipoProduto,
       observacao: produto.observacao ?? null,
       unidadeVenda: produto.unidadeVenda ?? null,
       fabricante: produto.fabricante ?? null,
       modelo: produto.modelo ?? '',
       precoVenda: produto.precoVenda ?? null,
+      precoCusto: produto.precoCusto ?? null,
       estoque: produto.estoque ?? null,
       quantidade: produto.quantidade ?? 1,
     }));
@@ -220,12 +269,13 @@ export class VendaComponent implements OnInit {
       integrante: this.cliente as Clientes,
       produtos: produtosCorrigidos,
       status: Status.FINALIZADO,
+      tipoVenda: this.tipoVenda as 'NOVO' | 'RECAPAGEM',
       formaPagamento: this.tipoFinalizacaoVenda as FormaPagamento,
       porcentagemDesconto: this.porcentagemDesconto,
       parcelas: this.parcelas as number,
       desconto: this.descontoAplicado as number,
+      
       total: this.total,
-      // lucro: produtosCorrigidos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0) - this.total,
       totalSemDesconto: this.totalSemDesconto // Inclui o total sem desconto
     };
     this.pedidoService.criarPedido(pedido).subscribe(response => {
@@ -238,7 +288,7 @@ export class VendaComponent implements OnInit {
       this.router.navigate(['/faturamento/modulo-vendas']);
       this.reset();
     }, error => {
-      console.error('Erro ao criar pedido:', error);
+      console.error('Erro ao criar pedido:', error, pedido);
       this.messageService.add({
         severity: 'error',
         summary: 'Erro',
@@ -313,7 +363,9 @@ export class VendaComponent implements OnInit {
   converterProdutoParaDto(produto: any): ProdutoVenda {
     return {
       descricao: produto.descricao ?? null,
+      tipoProduto:produto.tipoProduto ?? null,
       precoVenda: produto.precoVenda ?? null,
+      precoCusto: produto.precoCusto ?? null,
       unidadeVenda: produto.unidadeVenda?.codigo ?? null,
       fabricante: produto.fabricante?.codigo ?? null,
       quantidade: this.quantidade,
@@ -326,6 +378,7 @@ export class VendaComponent implements OnInit {
 
   cancelarVenda() {
     this.produtos = [];
+    this.tipoVenda = null;
     this.total = 0;
     this.totalSemDesconto = 0; // Resetando o total sem desconto
     this.descontoAplicado = 0;
@@ -333,6 +386,11 @@ export class VendaComponent implements OnInit {
     this.tipoFinalizacaoVenda = null;
     this.parcelas = null;
     this.router.navigate(['/home']);
+  }
+
+  clearPesquisa() {
+    this.valorPesquisa = '';
+    this.tabelaProdutoDialog?.reset();
   }
 }
 

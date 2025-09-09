@@ -14,7 +14,7 @@ export class ClienteService {
   private httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
-      Authorization: `${this.JWT_TOKEN}`,
+      Authorization: `Bearer ${this.JWT_TOKEN}`,
     }),
   };
 constructor(

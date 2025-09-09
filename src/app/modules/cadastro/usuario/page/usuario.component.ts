@@ -1,25 +1,27 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { format } from 'date-fns';
 import * as FileSaver from 'file-saver';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
+import { ContextMenu } from 'primeng/contextmenu';
 import { Table } from 'primeng/table';
 import { Subject, takeUntil } from 'rxjs';
+import { Status } from 'src/app/models/enums/Status.enum';
 import { Tipo } from 'src/app/models/enums/users/Tipo.enum';
 import { Column } from 'src/app/models/interfaces/Column';
 import { ExportColumn } from 'src/app/models/interfaces/ExportColumn';
 import { AdicionarUsuario } from 'src/app/models/interfaces/usuario/AdicionarUsuario';
+import { DropDownEnumOptions } from 'src/app/models/interfaces/usuario/DropDownEnumOptions';
 import { EditarUsuario } from 'src/app/models/interfaces/usuario/EditarUsuario';
 import { GrupoUsuarios } from 'src/app/models/interfaces/usuario/grupo/response/GrupoUsuariosResponse';
 import { Usuarios } from 'src/app/models/interfaces/usuario/response/UsuariosResponse';
 import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.service';
 
-export interface  Usuario {
+export interface Usuario {
   codigo: bigint;
   dataCadastro: string;
   nomeCompleto: string;
-  tipo:Tipo;
+  tipo: Tipo;
   telefone: string;
   email: string;
   documento: string;
@@ -37,9 +39,23 @@ export interface  Usuario {
 })
 export class UsuarioComponent implements OnInit, OnDestroy {
 
+
   private destroy$: Subject<void> = new Subject<void>();
 
   @ViewChild('tabelaUsuario') tabelaUsuario: Table | undefined;
+
+  @ViewChild('cm') cm !: ContextMenu;
+
+   onContextMenu(event:any, usuario:any) {
+        this.usuarioAtual = usuario;
+        this.cm.show(event);
+    }
+
+     onHide() {
+        // this.usuarioAtual = null;
+    }
+
+  items: MenuItem[] | undefined;
 
   /**
    * Flag para exibir ou ocultar o formulário de grupo de usuário.
@@ -56,7 +72,7 @@ export class UsuarioComponent implements OnInit, OnDestroy {
   /**
  * Grupo de usuário selecionado.
  */
-  public userSelected!: Usuarios[] | null;
+  public userSelected!: Usuarios | null;
 
   public userGroupSelected!: GrupoUsuarios[];
 
@@ -68,6 +84,18 @@ export class UsuarioComponent implements OnInit, OnDestroy {
    * Valor digitado no campo de pesquisa
    */
   valorPesquisa!: string;
+
+  novoTipo!: Tipo;
+
+  public usuario!: Usuario;
+
+  usuarioAtual!:Usuario | null;
+
+  tiposUsuario!: DropDownEnumOptions[];
+
+  tipoSelecionado!: Tipo;
+
+  mostrarTelaAcaoAlterarTipo: boolean = false;
 
   /**
    * Limpa a seleção da tabela.
@@ -109,7 +137,7 @@ export class UsuarioComponent implements OnInit, OnDestroy {
   public userForm = this.formBuilderUser.group({
     codigo: [{ value: null as bigint | null, disabled: true }],
     nomeCompleto: ['', [Validators.required]],
-    tipo:[{value:'', disabled: true}],
+    tipo: [{ value: '', disabled: true }],
     telefone: ['', [Validators.required]],
     email: ['', [Validators.required]],
     documento: ['', [Validators.required]],
@@ -131,11 +159,24 @@ export class UsuarioComponent implements OnInit, OnDestroy {
     this.cols = [
       { field: 'status', header: 'Status' },
       { field: 'nomeCompleto', header: 'Nome Completo' },
-      { field: 'tipo', header: 'Tipo'},
+      { field: 'tipo', header: 'Tipo' },
       { field: 'login', header: 'Login' },
     ];
 
     this.colunasSelecionadas = this.cols;
+
+    this.tiposUsuario = [
+      {label: 'Administrador', value: Tipo.ADMIN},
+      {label: 'Usuário', value: Tipo.USUARIO}
+    ]
+
+    this.items = [
+      {
+        label:'Alterar Tipo Usuário',
+        icon: 'pi pi-pencil',
+        command: () => {this.acaoAlterarTipo()}
+      }
+    ]
 
   }
 
@@ -216,7 +257,7 @@ export class UsuarioComponent implements OnInit, OnDestroy {
    */
   onRowSelect(event: any) {
     console.log('Row selected:', event.data);
-    this.userSelected = event.data;
+    this.usuarioAtual = event.data;
   }
 
   /**
@@ -228,6 +269,41 @@ export class UsuarioComponent implements OnInit, OnDestroy {
     return !!this.userForm.getRawValue().codigo;
   }
 
+  visualizarUsuario(usuario:Usuario){
+    console.log(usuario)
+    this.showForm = true
+    this.usuarioService.getUsuarioEspecifico(usuario.codigo).subscribe({
+      next:(usuario) => {
+        this.userForm.patchValue({
+          codigo:usuario.codigo,
+          nomeCompleto:usuario.nomeCompleto,
+          tipo:usuario.tipo,
+          telefone:usuario.telefone,
+          email:usuario.email,
+          documento:usuario.documento,
+          login:usuario.login,
+          status:usuario.status,
+          empresa:1,
+          dataCadastro:usuario.dataCadastro,
+          password:'*******',
+          versao:usuario.versao
+        })
+      }
+    })
+    this.userForm.get('codigo')?.disable()
+    this.userForm.get('nomeCompleto')?.disable()
+    this.userForm.get('tipo')?.disable()
+    this.userForm.get('telefone')?.disable()
+    this.userForm.get('email')?.disable()
+    this.userForm.get('documento')?.disable()
+    this.userForm.get('login')?.disable()
+    this.userForm.get('status')?.disable()
+    this.userForm.get('empresa')?.disable()
+    this.userForm.get('versao')?.disable()
+    this.userForm.get('dataCadastro')?.disable()
+    this.userForm.get('password')?.disable()
+  }
+
   /**
  * Manipulador de eventos para o botão de adição de grupo.
  * Exibe o formulário de adição de grupo.
@@ -237,7 +313,7 @@ export class UsuarioComponent implements OnInit, OnDestroy {
     this.userForm.setValue({
       codigo: null,
       nomeCompleto: null,
-      tipo:null,
+      tipo: null,
       telefone: null,
       email: null,
       documento: null,
@@ -249,6 +325,8 @@ export class UsuarioComponent implements OnInit, OnDestroy {
       dataCadastro: null
     });
   }
+
+
 
 
 
@@ -265,7 +343,7 @@ export class UsuarioComponent implements OnInit, OnDestroy {
         this.userForm.patchValue({
           codigo: user.codigo,
           nomeCompleto: user.nomeCompleto,
-          tipo:user.tipo,
+          tipo: user.tipo,
           telefone: user.telefone,
           email: user.email,
           documento: user.documento,
@@ -294,18 +372,7 @@ export class UsuarioComponent implements OnInit, OnDestroy {
   }
 
 
-  disableSelectedUsers() {
-    this.confirmationService.confirm({
-      message: 'Tem certeza de que deseja excluir os usuarios selecionados?',
-      header: 'Confirmar',
-      icon: 'pi pi-exclamation-triangle',
-      accept: () => {
-        this.userDatas = this.userDatas.filter((val) => !this.userSelected?.includes(val));
-        this.userSelected = null;
-        this.messageService.add({ severity: 'success', summary: 'Sucesso', detail: 'Usuarios Excluídos', life: 3000 });
-      }
-    });
-  }
+  
 
 
   /**
@@ -424,7 +491,7 @@ export class UsuarioComponent implements OnInit, OnDestroy {
       const requestEditUser: EditarUsuario = {
         codigo: this.userForm.value.codigo as bigint,
         nomeCompleto: this.userForm.value.nomeCompleto as string,
-        tipo:this.userForm.value.tipo as Tipo,
+        tipo: this.userForm.value.tipo as Tipo,
         telefone: this.userForm.value.telefone as string,
         email: this.userForm.value.email as string,
         documento: this.userForm.value.documento as string,
@@ -520,6 +587,69 @@ export class UsuarioComponent implements OnInit, OnDestroy {
       });
     }
   }
+
+  acaoAlterarTipo(){
+    if(this.usuarioAtual){
+      this.tipoSelecionado = this.usuarioAtual.tipo
+      console.log(this.usuarioAtual)
+      this.mostrarTelaAcaoAlterarTipo = true
+    }else {
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Atenção',
+      detail: 'Selecione um usuário primeiro.',
+      life: 3000
+    });
+  }
+  }
+
+  alterarTipo() {
+    const tipo = this.tipoSelecionado;
+    if(this.usuarioAtual?.status === Status.DESATIVADO){
+      this.messageService.add({
+        severity:'error',
+        summary:'Erro',
+        detail:'Usuário desativado não é possível alterar o tipo',
+        life:4000
+      })
+      return
+    }
+    console.log(this.usuarioAtual?.codigo, tipo)
+    if (this.usuarioAtual?.codigo !== undefined) {
+      this.usuarioService.alterarTipo(this.usuarioAtual.codigo, tipo).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (response) => {
+          if(response){
+            this.messageService.add({
+              severity:'success',
+              summary:'Sucesso',
+              detail:'Tipo de usuário alterado com sucesso',
+              life:4000
+            })
+            this.mostrarTelaAcaoAlterarTipo = false;
+            this.atualizarTabela()
+          }
+        },error: (e) => {
+          this.messageService.add({
+             severity:'error',
+              summary:'Erro',
+              detail:'Não foi possível alterar o tipo do usuário',
+              life:4000
+          })
+          console.error(e)
+        }
+      })
+    } else {
+      this.messageService.add({
+        severity:'error',
+        summary:'Erro',
+        detail:'Código do usuário não encontrado',
+        life:4000
+      });
+    }
+  }
+
+  
+  
 
 
   /**

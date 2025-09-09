@@ -18,7 +18,7 @@ private API_URL = environment.apiUrl;
   private httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
-      Authorization: `${this.JWT_TOKEN}`,
+      Authorization: `Bearer ${this.JWT_TOKEN}`,
     }),
   };
 
@@ -36,7 +36,7 @@ private API_URL = environment.apiUrl;
     }
 
     cancelarVenda(codigo:bigint):Observable<Array<PedidoDto>>{
-      return this.http.put<Array<PedidoDto>>(`${this.API_URL}/pedidos/cancelar/${codigo}`,this.httpOptions)
+      return this.http.post<Array<PedidoDto>>(`${this.API_URL}/pedidos/cancelar/${codigo}`,this.httpOptions)
     }
 
 //     desativarCliente(CODIGO:bigint):Observable<Array<Clientes>>{

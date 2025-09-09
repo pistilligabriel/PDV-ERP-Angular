@@ -291,6 +291,45 @@ export class ClienteComponent implements OnInit {
     return !!this.clienteForm.getRawValue().codigo;
   }
 
+  visualizarCliente(cliente:Clientes){
+    this.showForm = true;
+    this.clienteService.getCliente(cliente.codigo).subscribe({
+      next: (cliente) => {
+        this.clienteForm.patchValue({
+          codigo:cliente.codigo,
+          nomeCompleto:cliente.nomeCompleto,
+          telefone:cliente.telefone,
+          email:cliente.email,
+          tipoDocumento:cliente.tipoDocumento,
+          documento:cliente.documento,
+          cep:cliente.cep,
+          logradouro:cliente.logradouro,
+          numero:cliente.numero,
+          bairro:cliente.bairro,
+          municipio:cliente.municipio,
+          uf:cliente.uf,
+          complemento:cliente.complemento,
+          status:cliente.status,
+          empresa:1,
+          versao:cliente.versao
+        })
+      }
+    })
+
+    this.clienteForm.get('nomeCompleto')?.disable()
+    this.clienteForm.get('telefone')?.disable()
+    this.clienteForm.get('email')?.disable()
+    this.clienteForm.get('tipoDocumento')?.disable()
+    this.clienteForm.get('documento')?.disable()
+    this.clienteForm.get('cep')?.disable()
+    this.clienteForm.get('logradouro')?.disable()
+    this.clienteForm.get('numero')?.disable()
+    this.clienteForm.get('bairro')?.disable()
+    this.clienteForm.get('municipio')?.disable()
+    this.clienteForm.get('uf')?.disable()
+    this.clienteForm.get('complemento')?.disable()
+    
+  }
 
 
   /**

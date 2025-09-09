@@ -18,7 +18,7 @@
               (onRowSelect)="onRowSelect($event)" selectionMode="single" [rows]="10" [paginator]="true"
               [responsive]="true" [resizableColumns]="true" columnResizeMode="fit" styleClass="p-datatable-gridlines"
               [tableStyle]="{ 'min-width': '50rem' }" [rowHover]="true" [showCurrentPageReport]="true"
-              [rowsPerPageOptions]="[10, 25, 50, 100]"  [globalFilterFields]="[
+              [rowsPerPageOptions]="[10, 25, 50, 100]" [globalFilterFields]="[
                 'codigo',
                 'status',
                 'dataEmissao',
@@ -27,12 +27,12 @@
                 'formaPagamento',
               ]" [exportHeader]="'customExportHeader'" dataKey="codigo"
               currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros" [filterDelay]="0"
-              [sortField]="'codigo'" [sortOrder]="-1" >
+              [sortField]="'codigo'" [sortOrder]="-1">
               <ng-template pTemplate="caption">
                 <div class="flex">
                   <div class="mr-5">
                     <button type="button" class="mr-2" pButton pRipple icon="pi pi-plus" pTooltip="Nova Venda"
-                      (click)="onAddButtonClick()">
+                      (click)="abrirDialogTipoVenda()">
                     </button>
                   </div>
 
@@ -60,7 +60,7 @@
                   </span>
                   <button pButton label="Limpar" class="p-button-outlined" icon="pi pi-filter-slash"
                     (click)="clear(tabelaVenda)"></button>
-                    <button pButton class="p-button-outlined ml-3" icon="pi pi-refresh"
+                  <button pButton class="p-button-outlined ml-3" icon="pi pi-refresh"
                     (click)="atualizarTabela()"></button>
                 </div>
               </ng-template>
@@ -71,7 +71,7 @@
                   <!-- <th style="width: 4rem">
                     <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
                   </th> -->
-                  <th pResizableColumn  pSortableColumn="codigo"  style="width: 3rem">
+                  <th pResizableColumn pSortableColumn="codigo" style="width: 3rem">
                     <div class="flex justify-content-between align-items-center">
                       <div class="flex justify-content-between align-items-center">
                         Código
@@ -99,11 +99,11 @@
               </ng-template>
 
               <ng-template pTemplate="body" let-venda let-columns="columns">
-                <tr [ngClass]="getRowClass(venda)">
+                <tr [ngClass]="getRowClass(venda)" (contextmenu)="onContextMenu($event,venda)">
                   <td>
                     <div class="flex justify-content-center gap-2 align-content-center align-items-center">
-                      <button pButton pRipple class="p-button-rounded p-button-text p-button-info icon-color" icon="pi pi-eye"
-                        pTooltip="Visualizar Venda" (click)="verProdutos(venda?.codigo)"></button>
+                      <button pButton pRipple class="p-button-rounded p-button-text p-button-info icon-color"
+                        icon="pi pi-eye" pTooltip="Visualizar Venda" (click)="verProdutos(venda?.codigo)"></button>
                     </div>
                   </td>
                   <td>{{ venda.codigo }}</td>
@@ -115,6 +115,8 @@
                     <td> R${{ venda?.pedidoDto?.desconto | number: '1.2-2' }} </td>
                     <td> R${{ venda?.pedidoDto?.total | number: '1.2-2' }} </td>
                     <td> {{ venda?.pedidoDto?.formaPagamento }} </td>
+                    <td> {{ venda?.pedidoDto?.parcelas == 0 ? "À Vista" : venda?.pedidoDto?.parcelas  }} </td>
+                    <td *ngIf="usuario?.tipo === tipo.ADMIN"> {{ venda?.pedidoDto?.lucro | number: '1.2-2' }}% </td>
                     <ng-template #statusColumn>
                       <td>
                         <p-tag [value]="venda.status" [severity]="getSeverity(venda.status)"></p-tag>
@@ -123,6 +125,7 @@
                   </ng-container>
                 </tr>
               </ng-template>
+
 
               <ng-template pTemplate="summary">
                 <div class="text-center">
@@ -137,10 +140,17 @@
                 </tr>
               </ng-template>
             </p-table>
+            <p-dialog header="Selecione o tipo da venda" [(visible)]="mostrarDialogTipoVenda"  [draggable]="false" [resizable]="false" [modal]="true" [style]="{width:'25vw'}">
+              <div class="flex justify-content-between align-items-center">
+                <p-button (onClick)="selecionarTipo('NOVO')" label="Novo" [raised]="true" severity="secondary" [rounded]="true"/>
+                <p-button (onClick)="selecionarTipo('RECAPAGEM')" label="Recapagem" [raised]="true"
+                  severity="secondary" [rounded]="true"/>
+              </div>
+            </p-dialog>
           </div>
         </div>
-        <p-dialog header="Venda Código {{vendaAtual?.codigo}} - {{vendaAtual?.pedidoDto?.status}}" [(visible)]="mostrarDialogProdutos" [modal]="true"
-          [style]="{ width: '50vw' }">
+        <p-dialog header="Venda Código {{vendaAtual?.codigo}} - {{vendaAtual?.pedidoDto?.status}}"
+          [(visible)]="mostrarDialogProdutos" [draggable]="false" [modal]="true" [style]="{ width: '50vw' }">
           <div>
             <h2>Cliente: {{vendaAtual?.pedidoDto?.integrante?.nomeCompleto}}</h2>
           </div>
@@ -165,3 +175,4 @@
             </ng-template>
           </p-table>
         </p-dialog>
+        <p-contextMenu #cm [model]="items" (onHide)="onHide()" />
