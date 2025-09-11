@@ -143,7 +143,8 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
     ];
 
     if (this.usuario?.tipo === this.tipo.ADMIN) {
-      this.cols.push({ field: 'lucro', header: 'Lucro' });
+      this.cols.push({ field: 'lucro', header: 'Lucro Por Parcela' });
+      this.cols.push({ field: 'lucroTotal', header: 'Lucro Total' });
     }
 
     this.colunasSelecionadas = this.cols;

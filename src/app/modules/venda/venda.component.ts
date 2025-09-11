@@ -17,6 +17,7 @@ import { UsuarioPerfil } from 'src/app/models/interfaces/usuario/UsuarioPerfil';
 import { VendaContextService } from 'src/app/services/faturamento/venda/venda-context.service';
 import { Table } from 'primeng/table';
 import { TipoProduto } from 'src/app/models/enums/products/TipoProduto.enum';
+import { Tipo } from 'src/app/models/enums/users/Tipo.enum';
 
 
 registerLocaleData(localePt, 'pt-BR');
@@ -99,6 +100,8 @@ export class VendaComponent implements OnInit {
   mostrarDialogQuantidade: boolean = false;
 
   usuario!: UsuarioPerfil;
+
+  Tipo = Tipo;
 
   constructor(
     private produtoService: ProdutoService,

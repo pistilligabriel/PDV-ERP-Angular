@@ -117,6 +117,7 @@
                     <td> {{ venda?.pedidoDto?.formaPagamento }} </td>
                     <td> {{ venda?.pedidoDto?.parcelas == 0 ? "À Vista" : venda?.pedidoDto?.parcelas  }} </td>
                     <td *ngIf="usuario?.tipo === tipo.ADMIN"> {{ venda?.pedidoDto?.lucro | number: '1.2-2' }}% </td>
+                    <td *ngIf="usuario?.tipo === tipo.ADMIN"> {{ venda?.pedidoDto?.lucroTotal | number: '1.2-2' }}% </td>
                     <ng-template #statusColumn>
                       <td>
                         <p-tag [value]="venda.status" [severity]="getSeverity(venda.status)"></p-tag>
