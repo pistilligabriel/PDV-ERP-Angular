@@ -47,7 +47,7 @@
             <th>Descrição</th>
             <th>Tipo Produto</th>
             <th>Estoque</th>
-            <th>Custo</th>
+            <th *ngIf="usuario?.tipo === Tipo.ADMIN">Custo</th>
             <th>Unitário</th>
             <th>Ação</th>
           </tr>
@@ -58,7 +58,7 @@
             <td>{{ produto.descricao }}</td>
             <td>{{ produto.tipoProduto }}</td>
             <td>{{ produto.estoque }}</td>
-            <td>R$ {{ produto.precoCusto | number: '1.2-2' }}</td>
+            <td *ngIf="usuario?.tipo === Tipo.ADMIN">R$ {{ produto.precoCusto | number: '1.2-2' }}</td>
             <td>R$ {{ produto.precoVenda | number: '1.2-2' }}</td>
             <td>
               <button pButton type="button" label="Selecionar" (click)="selecionarProduto(produto)"></button>
@@ -82,11 +82,12 @@
             <th>Nome Completo</th>
             <th>Documento</th>
             <th>Endereço</th>
+            <th>Ação</th>
           </tr>
         </ng-template>
         <ng-template pTemplate="body" let-cliente>
           <tr>
-            <td>{{ cliente.nome + ' ' + cliente.sobrenome }}</td>
+            <td>{{ cliente.nomeCompleto }}</td>
             <td>{{ cliente.documento }}</td>
             <td>{{ cliente.logradouro + ' - ' + cliente.bairro + ' - ' + cliente.municipio }}</td>
             <td>

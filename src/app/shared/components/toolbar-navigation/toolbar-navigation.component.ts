@@ -21,7 +21,7 @@ export class ToolbarNavigationComponent implements OnInit, OnDestroy {
   goHome() {
     this.router.navigate(['/home'])
   }
-  
+
   private destroy$: Subject<void> = new Subject<void>();
 
   logo!: File | string;
@@ -85,11 +85,11 @@ export class ToolbarNavigationComponent implements OnInit, OnDestroy {
             icon: 'pi pi-fw pi-cart-plus',
             routerLink: ['/faturamento/modulo-vendas'],
           },
-          {
-            label: 'Estoque',
-            icon: 'pi pi-fw pi-box',
-            routerLink: ['/billing/stock'],
-          },
+          // {
+          //   label: 'Estoque',
+          //   icon: 'pi pi-fw pi-box',
+          //   routerLink: ['/billing/stock'],
+          // },
         ],
       },
       // {
