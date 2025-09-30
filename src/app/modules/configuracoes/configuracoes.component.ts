@@ -81,7 +81,7 @@ export class ConfigComponent implements OnInit, OnDestroy {
           console.log('Configurações salvas com sucesso!', response);
         
           this.configService.atualizarEmpresa({
-            nomeEmpresa: response.nomeEmpresa,
+            nomeEmpresa: response?.nomeEmpresa,
             logo: response.logo ? `data:image/png;base64,${response.logo}` : (this.configForm.value.logo ?? undefined)
           });
     
