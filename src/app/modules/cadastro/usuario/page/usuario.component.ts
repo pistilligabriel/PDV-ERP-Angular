@@ -489,7 +489,7 @@ export class UsuarioComponent implements OnInit, OnDestroy {
 
     if (this.userForm?.valid) {
       const requestEditUser: EditarUsuario = {
-        codigo: this.userForm.value.codigo as bigint,
+        codigo: this.userForm.getRawValue().codigo as bigint,
         nomeCompleto: this.userForm.value.nomeCompleto as string,
         tipo: this.userForm.value.tipo as Tipo,
         telefone: this.userForm.value.telefone as string,
