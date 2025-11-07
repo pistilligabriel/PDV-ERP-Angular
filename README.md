@@ -4,38 +4,12 @@ Este projeto é uma aplicação desenvolvida com Angular, que serve como um sist
 
 ## Sobre o projeto
 
-Mais detalhes sobre o objetivo e funcionalidades específicas do sistema podem ser adicionados aqui, caso haja documentação adicional ou informações específicas do desenvolvedor.
+Projeto desenvolvido para gerenciamento de Usuários, Clientes, Produtos e realização de vendas, com foco em ter total registro de movimentos referente a vendas que podem ser consultados ou gerado relatórios para controle.
 
-## Estrutura do projeto
-PDV-ERP-Angular/
+Features futuras:
+-- Controle detalhado de movimentações de estoque (Hoje o sistema controla o estoque apenas com quantidade do produto, diminuindo quando vende e aumenta quando da entrada, mas não consigo visualizar as movimentações de estoque)
 
-├── src/
-
-│ ├── app/
-
-│ │ ├── components/ # Componentes reutilizáveis do Angular
-
-│ │ ├── services/ # Serviços para lógica de negócio e comunicação
-
-│ │ ├── models/ # Modelos (interfaces/classes) do TypeScript
-
-│ │ ├── app.module.ts # Módulo principal do Angular
-
-│ │ └── app.component.ts # Componente raiz da aplicação
-
-│ ├── assets/ # Imagens, ícones e outros recursos estáticos
-
-│ ├── environments/ # Configurações de ambiente (dev, prod)
-
-│ ├── index.html # Entrada HTML da aplicação
-
-│ └── styles.css # Estilos globais
-
-├── angular.json # Arquivo de configuração Angular CLI
-
-├── package.json # Dependências e scripts do projeto
-
-└── README.md # Este arquivo de documentação 
+-- Controle financeiro
 
 
 ## Tecnologias utilizadas
