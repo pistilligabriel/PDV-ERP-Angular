@@ -21,7 +21,7 @@ PDV-ERP-Angular/
 │ └── styles.css # Estilos globais
 ├── angular.json # Arquivo de configuração Angular CLI
 ├── package.json # Dependências e scripts do projeto
-└── README.md # Este arquivo de documentação
+└── README.md # Este arquivo de documentação 
 
 ## Tecnologias utilizadas
 
