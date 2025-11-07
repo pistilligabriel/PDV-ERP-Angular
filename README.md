@@ -1,27 +1,57 @@
-# AngularSystem
+# PDV-ERP-Angular
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.2.6.
+Este projeto é uma aplicação desenvolvida com Angular, que serve como um sistema de PDV (Ponto de Venda) e ERP (Enterprise Resource Planning). O projeto foi gerado com Angular CLI versão 16.2.6.
 
-## Development server
+## Sobre o projeto
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Mais detalhes sobre o objetivo e funcionalidades específicas do sistema podem ser adicionados aqui, caso haja documentação adicional ou informações específicas do desenvolvedor.
 
-## Code scaffolding
+## Estrutura do projeto
+PDV-ERP-Angular/
+├── src/
+│ ├── app/
+│ │ ├── components/ # Componentes reutilizáveis do Angular
+│ │ ├── services/ # Serviços para lógica de negócio e comunicação
+│ │ ├── models/ # Modelos (interfaces/classes) do TypeScript
+│ │ ├── app.module.ts # Módulo principal do Angular
+│ │ └── app.component.ts # Componente raiz da aplicação
+│ ├── assets/ # Imagens, ícones e outros recursos estáticos
+│ ├── environments/ # Configurações de ambiente (dev, prod)
+│ ├── index.html # Entrada HTML da aplicação
+│ └── styles.css # Estilos globais
+├── angular.json # Arquivo de configuração Angular CLI
+├── package.json # Dependências e scripts do projeto
+└── README.md # Este arquivo de documentação
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Tecnologias utilizadas
 
-## Build
+- Angular (CLI versão 16.2.6)
+- TypeScript
+- HTML
+- CSS
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+## Como executar o projeto
 
-## Running unit tests
+### Servidor de desenvolvimento
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Execute o comando abaixo para iniciar um servidor de desenvolvimento:
+ng serve
 
-## Running end-to-end tests
+Depois, acesse a aplicação no navegador em:
+http://localhost:4200/
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+A aplicação recarregará automaticamente ao fazer alterações nos arquivos fontes.
 
-## Further help
+### Gerar componentes, diretivas, serviços, etc.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+Para criar novos componentes ou outros elementos do Angular, utilize:
+ng generate component nome-do-componente
+
+ou outros comandos de geração:
+ng generate directive|pipe|service|class|guard|interface|enum|module
+
+### Build do projeto
+
+Para construir a versão otimizada do projeto, execute:
+ng build
+Os artefatos de build serão armazenados na pasta `dist/`.
