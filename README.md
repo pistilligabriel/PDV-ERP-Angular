@@ -8,20 +8,35 @@ Mais detalhes sobre o objetivo e funcionalidades específicas do sistema podem s
 
 ## Estrutura do projeto
 PDV-ERP-Angular/
+
 ├── src/
+
 │ ├── app/
+
 │ │ ├── components/ # Componentes reutilizáveis do Angular
+
 │ │ ├── services/ # Serviços para lógica de negócio e comunicação
+
 │ │ ├── models/ # Modelos (interfaces/classes) do TypeScript
+
 │ │ ├── app.module.ts # Módulo principal do Angular
+
 │ │ └── app.component.ts # Componente raiz da aplicação
+
 │ ├── assets/ # Imagens, ícones e outros recursos estáticos
+
 │ ├── environments/ # Configurações de ambiente (dev, prod)
+
 │ ├── index.html # Entrada HTML da aplicação
+
 │ └── styles.css # Estilos globais
+
 ├── angular.json # Arquivo de configuração Angular CLI
+
 ├── package.json # Dependências e scripts do projeto
+
 └── README.md # Este arquivo de documentação 
+
 
 ## Tecnologias utilizadas
 
