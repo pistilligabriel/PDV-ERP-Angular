@@ -1,15 +1,88 @@
 <div class="pdv-container">
   <!-- Coluna Esquerda - Ações -->
   <div class="pdv-actions">
-    <button pButton label="🔍 Buscar Produto" class="p-button-primary p-mb-2" (click)="buscarProduto()"></button>
-    <button pButton label="👤 Cliente" class="p-button-primary p-mb-2" (click)="mostrarTelaCliente()"></button>
-    <button pButton label="% Desconto Total" class="p-button-primary p-mb-2" (click)="mostrarTelaDesconto()"></button>
-    <button pButton label="❌ Cancelar Venda" class="p-button-primary p-mb-2" (click)="cancelarVenda()"></button>
+    <button
+      pButton
+      icon="pi pi-search"
+      label="Buscar Produto"
+      class="btn-venda p-mb-2"
+      (click)="buscarProduto()"
+    ></button>
+    <button
+      pButton
+      icon="pi pi-user"
+      label="Cliente"
+      class="btn-venda p-mb-2"
+      (click)="mostrarTelaCliente()"
+    ></button>
+    <button
+      pButton
+      icon="pi pi-percentage"
+      label="Desconto Total"
+      class="btn-venda p-mb-2"
+      (click)="mostrarTelaDesconto()"
+    ></button>
+    <button
+      pButton
+      icon="pi pi-times"
+      label="Cancelar Venda"
+      class="btn-venda p-mb-2"
+      (click)="cancelarVenda()"
+    ></button>
+
+
+    <button
+      *ngIf="tipoVenda !== 'CONDICIONAL'"
+      pButton
+      icon="pi pi-dollar"
+      label="Pix"
+      class="p-button-secondary mt-6"
+      (click)="pix()"
+    ></button>
+    <button
+      *ngIf="tipoVenda !== 'CONDICIONAL'"
+      pButton
+      icon="pi pi-dollar"
+      label="Dinheiro"
+      class="p-button-secondary"
+      (click)="dinheiro()"
+    ></button>
+    <button
+      *ngIf="tipoVenda !== 'CONDICIONAL'"
+      pButton
+      icon="pi pi-credit-card"
+      label="Cartão Débito"
+      class="p-button-secondary"
+      (click)="cartaoDebito()"
+    ></button>
+    <button
+      *ngIf="tipoVenda !== 'CONDICIONAL'"
+      pButton
+      icon="pi pi-credit-card"
+      label="Cartão Crédito à vista"
+      class="p-button-secondary"
+      (click)="cartaoCreditoAVista()"
+    ></button>
+    <button
+      *ngIf="tipoVenda !== 'CONDICIONAL'"
+      pButton
+      icon="pi pi-credit-card"
+      label="Cartão Crédito parcelado"
+      class="p-button-secondary"
+      (click)="mostrarTelaCartaoPrazo()"
+    ></button>
+    <button
+      *ngIf="tipoVenda === 'CONDICIONAL'"
+      pButton
+      icon="pi pi-credit-card"
+      label="Finalizar"
+      class="p-button-secondary mt-6"
+      (click)="finalizarCondicional()"
+    ></button>
   </div>
 
   <!-- Coluna Direita - Venda -->
   <div class="pdv-venda">
-
     <!-- Tabela de Produtos -->
     <p-table [value]="produtos" [scrollable]="true" scrollHeight="300px">
       <ng-template pTemplate="header">
@@ -27,27 +100,52 @@
           <td>{{ produto.codigo }}</td>
           <td>{{ produto.descricao }}</td>
           <td>{{ produto.quantidade }}</td>
-          <td>R$ {{ produto.precoVenda | number: '1.2-2' }}</td>
-          <td>R$ {{ (produto.precoVenda*produto.quantidade) | number: '1.2-2' }}</td>
+          <td>R$ {{ produto.precoVenda | number: "1.2-2" }}</td>
           <td>
-            <button pButton icon="pi pi-times" class="p-button-danger p-button-sm"
-              (click)="removerProduto(produto.codigo)"></button>
+            R$ {{ produto.precoVenda * produto.quantidade | number: "1.2-2" }}
+          </td>
+          <td>
+            <button
+              pButton
+              icon="pi pi-times"
+              class="p-button-danger p-button-sm"
+              (click)="removerProduto(produto.codigo)"
+            ></button>
           </td>
         </tr>
       </ng-template>
     </p-table>
-    <p-dialog header="Produtos Cadastrados" (onHide)="clearPesquisa()" [draggable]="false" [(visible)]="mostrarDialogProdutos" [modal]="true"
-      [style]="{width: '70vw'}">
-      <p-table #tabelaProdutoDialog [value]="catalogoFiltrado" [globalFilterFields]="['codigo','descricao']">
+    <p-dialog
+      header="Produtos Cadastrados"
+      (onHide)="clearPesquisa()"
+      [draggable]="false"
+      [(visible)]="mostrarDialogProdutos"
+      [modal]="true"
+      [style]="{ width: '70vw' }"
+    >
+      <p-table
+        #tabelaProdutoDialog
+        [value]="catalogoFiltrado"
+        [globalFilterFields]="['codigo', 'descricao']"
+      >
         <ng-template pTemplate="header">
-          <input class="mb-4" [style]="{width:'200px'}" pInputText type="text" [(ngModel)]="valorPesquisa" (input)="applyFilterGlobal($event, 'contains')"
-            placeholder="Pesquisar" />
+          <input
+            class="mb-4"
+            [style]="{ width: '200px' }"
+            pInputText
+            type="text"
+            [(ngModel)]="valorPesquisa"
+            (input)="applyFilterGlobal($event, 'contains')"
+            placeholder="Pesquisar"
+          />
           <tr>
             <th>Código</th>
             <th>Descrição</th>
-            <th>Tipo Produto</th>
+            <th *ngIf="empresa.tipoEmpresa == TipoEmpresa.PECAS">
+              Tipo Produto
+            </th>
             <th>Estoque</th>
-            <th *ngIf="usuario?.tipo === Tipo.ADMIN">Custo</th>
+            <th *ngIf="usuario.tipo === Tipo.ADMIN">Custo</th>
             <th>Unitário</th>
             <th>Ação</th>
           </tr>
@@ -56,26 +154,50 @@
           <tr>
             <td>{{ produto.codigo }}</td>
             <td>{{ produto.descricao }}</td>
-            <td>{{ produto.tipoProduto }}</td>
+            <td *ngIf="empresa.tipoEmpresa === TipoEmpresa.PECAS">
+              {{ produto.tipoProduto }}
+            </td>
             <td>{{ produto.estoque }}</td>
-            <td *ngIf="usuario?.tipo === Tipo.ADMIN">R$ {{ produto.precoCusto | number: '1.2-2' }}</td>
-            <td>R$ {{ produto.precoVenda | number: '1.2-2' }}</td>
+            <td *ngIf="usuario.tipo === Tipo.ADMIN">
+              R$ {{ produto.precoCusto | number: "1.2-2" }}
+            </td>
+            <td>R$ {{ produto.precoVenda | number: "1.2-2" }}</td>
             <td>
-              <button pButton type="button" label="Selecionar" (click)="selecionarProduto(produto)"></button>
+              <button
+                pButton
+                type="button"
+                label="Selecionar"
+                (click)="selecionarProduto(produto)"
+              ></button>
             </td>
           </tr>
         </ng-template>
       </p-table>
     </p-dialog>
-    <p-dialog header="Desconto" [draggable]="false" [(visible)]="mostrarDesconto" [modal]="true">
+    <p-dialog
+      header="Desconto"
+      [draggable]="false"
+      [(visible)]="mostrarDesconto"
+      [modal]="true"
+    >
       <div class="p-float-label flex flex-column mr-4 mt-4 mb-4">
         <input pInputText [(ngModel)]="valorDesconto" />
         <label for="float-label">Desconto(%)</label>
       </div>
-      <p-button class="mr-2" (onClick)="aplicarDesconto()" type="submit" label="Confirmar"></p-button>
+      <p-button
+        class="mr-2"
+        (onClick)="aplicarDesconto()"
+        type="submit"
+        label="Confirmar"
+      ></p-button>
     </p-dialog>
-    <p-dialog header="Clientes Cadastrados" [draggable]="false" [(visible)]="mostrarDialogClientes" [modal]="true"
-      [style]="{width: '50vw'}">
+    <p-dialog
+      header="Clientes Cadastrados"
+      [draggable]="false"
+      [(visible)]="mostrarDialogClientes"
+      [modal]="true"
+      [style]="{ width: '50vw' }"
+    >
       <p-table [value]="clientes">
         <ng-template pTemplate="header">
           <tr>
@@ -89,56 +211,74 @@
           <tr>
             <td>{{ cliente.nomeCompleto }}</td>
             <td>{{ cliente.documento }}</td>
-            <td>{{ cliente.logradouro + ' - ' + cliente.bairro + ' - ' + cliente.municipio }}</td>
             <td>
-              <button pButton type="button" label="Selecionar" (click)="selecionarCliente(cliente)"></button>
+              {{
+                cliente.logradouro +
+                  " - " +
+                  cliente.bairro +
+                  " - " +
+                  cliente.municipio
+              }}
+            </td>
+            <td>
+              <button
+                pButton
+                type="button"
+                label="Selecionar"
+                (click)="selecionarCliente(cliente)"
+              ></button>
             </td>
           </tr>
         </ng-template>
       </p-table>
     </p-dialog>
-    <p-dialog header="Parcelamento" [draggable]="false" [(visible)]="mostrarDialogCartaoPrazo" [modal]="true">
+    <p-dialog
+      header="Parcelamento"
+      [draggable]="false"
+      [(visible)]="mostrarDialogCartaoPrazo"
+      [modal]="true"
+    >
       <div class="p-float-label flex flex-column mr-4 mt-4 mb-4">
         <input pInputText [(ngModel)]="parcelas" />
         <label for="float-label">Parcelas</label>
       </div>
-      <p-button class="mr-2" (onClick)="cartaoAPrazo()" type="submit" label="Confirmar"></p-button>
+      <p-button
+        class="mr-2"
+        (onClick)="cartaoAPrazo()"
+        type="submit"
+        label="Confirmar"
+      ></p-button>
     </p-dialog>
-    <p-dialog header="Quantidade" [draggable]="false" [(visible)]="mostrarDialogQuantidade" [modal]="true">
+    <p-dialog
+      header="Quantidade"
+      [draggable]="false"
+      [(visible)]="mostrarDialogQuantidade"
+      [modal]="true"
+    >
       <div class="p-float-label flex flex-column mr-4 mt-4 mb-4">
         <input pInputText type="number" [(ngModel)]="quantidade" />
         <label for="float-label">Quantidade</label>
       </div>
-      <p-button class="mr-2" (onClick)="quantidadeItem()" type="submit" label="Confirmar"></p-button>
+      <p-button
+        class="mr-2"
+        (onClick)="quantidadeItem()"
+        type="submit"
+        label="Confirmar"
+      ></p-button>
     </p-dialog>
-
 
     <!-- Rodapé -->
     <div class="pdv-footer">
-      <div>
-        Tipo Venda: {{tipoVenda}}
-      </div>
+      <div>Tipo Venda: {{ tipoVenda }}</div>
       <div class="info">
-        {{cliente?.tipoDocumento || "CPF"}}: {{ cliente?.documento || "Não identificado" }} | Cliente:
-        {{cliente?.nomeCompleto || "Cliente não identificado"}}
+        {{ cliente?.tipoDocumento || "CPF" }}:
+        {{ cliente?.documento || "Não identificado" }} | Cliente:
+        {{ cliente?.nomeCompleto || "Cliente não identificado" }}
       </div>
-      <div>
-        Desconto aplicado: R$ {{ descontoAplicado | number: '1.2-2' }}
-      </div>
-      <div class="total">
-        Total a pagar: R$ {{ total | number: '1.2-2' }}
-      </div>
+      <div>Desconto aplicado: R$ {{ descontoAplicado | number: "1.2-2" }}</div>
+      <div class="total">Total a pagar: R$ {{ total | number: "1.2-2" }}</div>
     </div>
 
     <!-- Botões de Pagamento -->
-    <div class="pdv-pagamento">
-      <button pButton label="💵 Pix" class="p-button-secondary" (click)="pix()"></button>
-      <button pButton label="💵 Dinheiro" class="p-button-secondary" (click)="dinheiro()"></button>
-      <button pButton label="💳 Cartão Débito" class="p-button-secondary" (click)="cartaoDebito()"></button>
-      <button pButton label="💳 Cartão Crédito à vista" class="p-button-secondary"
-        (click)="cartaoCreditoAVista()"></button>
-      <button pButton label="💳 Cartão Crédito parcelado" class="p-button-secondary"
-        (click)="mostrarTelaCartaoPrazo()"></button>
-    </div>
   </div>
 </div>

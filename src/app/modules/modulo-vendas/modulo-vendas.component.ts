@@ -20,6 +20,9 @@ import { Tipo } from 'src/app/models/enums/users/Tipo.enum';
 import { CookieService } from 'ngx-cookie-service';
 import { UsuarioContextService } from 'src/app/services/cadastro/usuario/usuario-context.service';
 import { VendaDialogService } from 'src/app/services/faturamento/venda/VendaDialogService.service';
+import { Config } from '../configuracoes/configuracoes.component';
+import { TipoEmpresa } from 'src/app/models/enums/empresa/TipoEmpresa.enum';
+import { ConfigService } from 'src/app/services/configuracoes/configuracoes.service';
 
 registerLocaleData(localePt, 'pt-BR');
 
@@ -33,6 +36,10 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
 
   // Informações do usuário logado
   usuario!: Usuario | null;
+
+  empresa!: Config;
+
+  TipoEmpresa = TipoEmpresa;
 
   private destroy$: Subject<void> = new Subject<void>();
 
@@ -101,14 +108,16 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
     private cookie: CookieService,
     private router: Router,
     private vendaContext: VendaContextService,
-    private vendaDialogService: VendaDialogService
+    private vendaDialogService: VendaDialogService,
+    private configService: ConfigService,
   ) {}
 
   ngOnInit() {
-
-    this.vendaDialogService.abrirDialog$.pipe(takeUntil(this.destroy$)).subscribe(() => {
-    this.abrirDialogTipoVenda();
-  });
+    this.vendaDialogService.abrirDialog$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.abrirDialogTipoVenda();
+      });
 
     this.listarVendas();
 
@@ -128,6 +137,15 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
       console.log('verificação token');
       return;
     }
+    
+    this.configService.getConfig().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (config) => {
+        this.empresa = config;
+      },
+      error: (e) => {
+        console.log('Não foi possível obter a configuração da empresa', e);
+      },
+    });
   }
 
   private inicializarColunas() {
@@ -216,7 +234,7 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
   applyFilterGlobal($event: any, stringVal: any) {
     this.tabelaVenda!.filterGlobal(
       ($event.target as HTMLInputElement).value,
-      stringVal
+      stringVal,
     );
   }
 
@@ -241,7 +259,7 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
                 Quantidade: produto.quantidade,
                 ValorUnitario: (produto?.precoVenda ?? 0).toLocaleString(
                   'pt-BR',
-                  { style: 'currency', currency: 'BRL' }
+                  { style: 'currency', currency: 'BRL' },
                 ),
                 ValorTotal: (
                   (produto?.precoVenda ?? 0) * produto.quantidade
@@ -263,8 +281,8 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
           { header: 'Quantidade', dataKey: 'Quantidade' },
           { header: 'Valor Unitário', dataKey: 'ValorUnitario' },
           { header: 'Valor Total', dataKey: 'ValorTotal' },
-          { header: 'Forma Pagamento', datakey:'FormaPagamento'},
-          { header: 'Parcelas', datakey:'Parcelas'},
+          { header: 'Forma Pagamento', datakey: 'FormaPagamento' },
+          { header: 'Parcelas', datakey: 'Parcelas' },
         ];
 
         (doc as any).autoTable({
@@ -295,7 +313,7 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
               Quantidade: produto.quantidade,
               'Valor Unitário': (produto?.precoVenda ?? 0).toLocaleString(
                 'pt-BR',
-                { style: 'currency', currency: 'BRL' }
+                { style: 'currency', currency: 'BRL' },
               ),
               'Valor Total': (
                 (produto?.precoVenda ?? 0) * produto.quantidade
@@ -324,7 +342,7 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
     });
     FileSaver.saveAs(
       data,
-      fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION
+      fileName + '_export_' + new Date().getTime() + EXCEL_EXTENSION,
     );
   }
 
@@ -372,7 +390,7 @@ export class ModuloVendasComponent implements OnInit, OnDestroy {
     this.mostrarDialogTipoVenda = true;
   }
 
-  selecionarTipo(tipo: 'NOVO' | 'RECAPAGEM') {
+  selecionarTipo(tipo: 'NOVO' | 'RECAPAGEM' | 'VENDA' | 'CONDICIONAL') {
     console.log('Adicionar venda');
     this.vendaContext.setTipoVenda(tipo);
     console.log(tipo);

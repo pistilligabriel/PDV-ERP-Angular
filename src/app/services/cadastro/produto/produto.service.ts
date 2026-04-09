@@ -50,7 +50,7 @@ constructor(
  }
 
  desativarProduto(CODIGO:bigint):Observable<Array<Produto>>{
-  return this.http.post<Array<Produto>>(`${this.API_URL}/produtos/desativar/${CODIGO}`, this.httpOptions);
+  return this.http.post<Array<Produto>>(`${this.API_URL}/produtos/alterar-status/${CODIGO}`, this.httpOptions);
  }
 
  removerProduto(CODIGO:bigint):Observable<Array<Produto>>{

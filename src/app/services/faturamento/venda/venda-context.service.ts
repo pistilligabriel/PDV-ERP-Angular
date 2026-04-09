@@ -3,13 +3,13 @@ import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class VendaContextService {
-  private tipoVendaSelecionado: 'NOVO' | 'RECAPAGEM' | null = null;
+  private tipoVendaSelecionado: 'NOVO' | 'RECAPAGEM' | 'VENDA' | 'CONDICIONAL' | null = null;
 
-  setTipoVenda(tipo: 'NOVO' | 'RECAPAGEM') {
+  setTipoVenda(tipo: 'NOVO' | 'RECAPAGEM' | 'VENDA' | 'CONDICIONAL') {
     this.tipoVendaSelecionado = tipo;
   }
 
-  getTipoVenda(): 'NOVO' | 'RECAPAGEM' | null {
+  getTipoVenda(): 'NOVO' | 'RECAPAGEM' | 'VENDA' | 'CONDICIONAL' | null {
     return this.tipoVendaSelecionado;
   }
 

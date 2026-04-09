@@ -24,6 +24,11 @@ import { Status } from 'src/app/models/enums/Status.enum';
 import { TipoProduto } from 'src/app/models/enums/products/TipoProduto.enum';
 import { DropDownEnumOptions } from 'src/app/models/interfaces/usuario/DropDownEnumOptions';
 import { DropDownTipoProduto } from 'src/app/models/interfaces/product/DropDownTipoProduto';
+import { Config } from '../../configuracoes/configuracoes.component';
+import { TipoEmpresa } from 'src/app/models/enums/empresa/TipoEmpresa.enum';
+import { ConfigService } from 'src/app/services/configuracoes/configuracoes.service';
+import { DropDownOptionsTamanhoRoupa } from 'src/app/models/interfaces/product/DropDownOptionsTamanhoRoupa';
+import { Tamanho } from 'src/app/models/enums/products/Tamanho.enum';
 
 export interface Produto {
   codigo: bigint,
@@ -32,6 +37,7 @@ export interface Produto {
   observacao: string,
   fabricante: Marca,
   modelo: string,
+  tamanho: Tamanho,
   unidadeVenda?: UnidadeMedida,
   precoCusto: number,
   estoque: number,
@@ -51,6 +57,7 @@ export interface AdicionarProduto {
   observacao: string,
   fabricante: bigint,
   modelo: string,
+  tamanho:Tamanho,
   unidadeVenda: bigint,
   precoCusto: number,
   estoque: number,
@@ -66,6 +73,7 @@ export interface EditarProduto {
   observacao: string,
   fabricante: bigint,
   modelo: string,
+  tamanho:Tamanho,
   unidadeVenda: bigint,
   precoCusto: number,
   estoque: number,
@@ -101,6 +109,10 @@ export class ProdutoComponent implements OnInit, OnDestroy {
    */
   public showForm = false;
 
+  empresa !: Config;
+
+  TipoEmpresa = TipoEmpresa;
+
   /**
    * Lista de dados de produtos.
    */
@@ -132,6 +144,10 @@ export class ProdutoComponent implements OnInit, OnDestroy {
 
   quantidadeAjusteEstoque!: EntradaAcertoEstoque;
 
+  tamanhos!: DropDownOptionsTamanhoRoupa[] ;
+  
+  tamanhoSelecionado!: Tamanho;
+
   constructor(
     private produtoService: ProdutoService,
     private usuarioService: UsuarioService,
@@ -140,7 +156,8 @@ export class ProdutoComponent implements OnInit, OnDestroy {
     private formBuilderProduto: FormBuilder,
     private confirmationService: ConfirmationService,
     private unidadeService: UnidadeMedidaService,
-    private marcaService: MarcaService
+    private marcaService: MarcaService,
+    private configService: ConfigService
   ) { }
 
   valorPesquisa!: string;
@@ -175,12 +192,13 @@ export class ProdutoComponent implements OnInit, OnDestroy {
   public produtoForm = this.formBuilderProduto.group({
     codigo: [{ value: null as bigint | null, disabled: true }],
     descricao: ['', [Validators.required]],
-    tipoProduto:[ null as TipoProduto | null , [Validators.required]],
+    tipoProduto:[ null as TipoProduto | null ],
     observacao: [''],
-    fabricante: [null as bigint | null, [Validators.required]],
+    fabricante: [null as bigint | null],
     modelo: [''],
+    tamanho:[''],
     unidadeVenda: [null as bigint | null, [Validators.required]],
-    precoCusto: [null as number | null, [Validators.required]],
+    precoCusto: [null as number | null],
     estoque: [null as number | null, [Validators.required]],
     precoVenda: [null as number | null, [Validators.required]],
     margemLucro: [{ value: 0, disabled: true }],
@@ -195,21 +213,30 @@ export class ProdutoComponent implements OnInit, OnDestroy {
    estoque: [null,[Validators.required]]
   });
 
+  
   ngOnInit() {
     this.listarProdutos();
     this.cols = [
       { field: 'status', header: 'Status' },
       { field: 'descricao', header: 'Descrição' },
       { field: 'fabricante', header: 'Marca' },
+      { field: 'tamanho', header: 'Tamanho' },
       { field: 'modelo', header: 'Modelo' },
       { field: 'estoque', header: 'Quantidade Estoque' },
       { field: 'unidadeVenda', header: 'Unidade Venda' },
     ];
     this.colunasSelecionadas = this.cols;
 
+    this.tamanhos = Object.keys(Tamanho).map((key) => ({
+      label: key,
+      value: key,
+    }));
+
     this.unidadeService.getAllUnidades().subscribe({
       next: (unidades) => {
-        this.unidadeMedidas = unidades.map(u => ({
+        this.unidadeMedidas = unidades
+        .filter(u => u.status === Status.ATIVO)
+        .map(u => ({
           label: `${u.descricao} - (${u.simbolo})`,
           value: u.codigo // ou u.codigo, dependendo do que você salva no produto
         }));
@@ -227,7 +254,9 @@ export class ProdutoComponent implements OnInit, OnDestroy {
 
     this.marcaService.getAllMarca().subscribe({
       next: (marca) => {
-        this.marca = marca.map(m => ({
+        this.marca = marca
+        .filter(m => m.status === Status.ATIVO)
+        .map(m => ({
           label: `${m.descricao}`,
           value: m.codigo // ou u.codigo, dependendo do que você salva no produto
         }));
@@ -272,10 +301,18 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       }
     ]
 
+    this.configService.getConfig().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (config) => {
+        this.empresa = config;
+      },error: (e) => {
+        console.log('Não foi possível obter as configurações da empresa', e)
+      }})
+
     this.tipoProduto = [
       {label: 'Novo', value: TipoProduto.NOVO},
       {label: 'Recapagem', value: TipoProduto.RECAPAGEM}
     ]
+    
 
   }
 
@@ -446,7 +483,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
             });
             this.quantidadeAjusteEstoque.estoque = null;
             this.mostrarTelaAcaoAjusteEstoque = false;
-            this.listarProdutos()
+            this.listarProdutos();
           }
         }, error: (e) => {
           this.messageService.add({
@@ -462,7 +499,6 @@ export class ProdutoComponent implements OnInit, OnDestroy {
   }
 
   visualizarProduto(produto:Produto){
-    
     this.showForm = true
     this.produtoService.getProdutoEspecifico(produto.codigo).subscribe({
       next: (p) => {
@@ -473,6 +509,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
           tipoProduto:p.tipoProduto,
           observacao:p.observacao,
           modelo:p.modelo,
+          tamanho:p.tamanho,
           fabricante:p.fabricante.codigo,
           unidadeVenda:p.unidadeVenda?.codigo,
           precoCusto:p.precoCusto,
@@ -512,6 +549,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
       tipoProduto:null,
       observacao: null,
       modelo: null,
+      tamanho:null,
       fabricante: null,
       unidadeVenda: null,
       precoCusto: null,
@@ -698,6 +736,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         observacao: this.produtoForm.value.observacao as string,
         fabricante: this.produtoForm.value.fabricante as bigint,
         modelo: this.produtoForm.value.modelo as string,
+        tamanho: this.produtoForm.value.tamanho as Tamanho,
         unidadeVenda: this.produtoForm.value.unidadeVenda as bigint,
         precoCusto: this.produtoForm.value.precoCusto as number,
         estoque: this.produtoForm.value.estoque as number,
@@ -705,6 +744,8 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         margemLucro: this.produtoForm.getRawValue().margemLucro as number,
         empresa: this.produtoForm.getRawValue().empresa as number,
       };
+
+      console.log(requestCreateproduto)
 
       this.produtoService
         .adicionarProduto(requestCreateproduto)
@@ -762,6 +803,7 @@ export class ProdutoComponent implements OnInit, OnDestroy {
         observacao: this.produtoForm.value.observacao as string,
         fabricante: this.produtoForm.value.fabricante as bigint,
         modelo: this.produtoForm.value.modelo as string,
+        tamanho: this.produtoForm.value.tamanho as Tamanho,
         unidadeVenda: this.produtoForm.value.unidadeVenda as bigint,
         precoCusto: this.produtoForm.value.precoCusto as number,
         estoque: this.produtoForm.value.estoque as number,

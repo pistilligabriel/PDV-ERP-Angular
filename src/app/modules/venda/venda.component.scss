@@ -4,7 +4,6 @@
   // padding: 1rem;
   height: 100vh;
   box-sizing: border-box;
-
   @media (max-width: 768px) {
     flex-direction: column;
     padding: 0.5rem;
@@ -18,7 +17,7 @@
   gap: 10px;
   padding: 10px 10px;
   border-radius: 10px;
-  background-color: darkgray;
+  background-color: #fda5d5;
 
   @media (max-width: 768px) {
     flex-direction: row;
@@ -45,7 +44,7 @@
 
 .pdv-footer {
   position: fixed;
-  bottom: 65px;
+  bottom: 1px;
   left: 200px;
   right: 0;
   padding: 0.5rem 1rem;
@@ -55,7 +54,7 @@
   justify-content: space-between;
   font-weight: bold;
   z-index: 99;
-  margin-left:28px;
+  margin-left: 28px;
 
   @media (max-width: 768px) {
     left: 0;
@@ -72,7 +71,7 @@
   left: 200px;
   right: 0;
   padding: 0.75rem 1rem;
-  margin-left:28px;
+  margin-left: 28px;
   background-color: #ffffff;
   border-top: 1px solid #ccc;
   display: flex;
@@ -86,4 +85,14 @@
     flex-direction: column;
     align-items: center;
   }
+}
+
+.btn-venda {
+  width: 100%;
+  @media (max-width: 768px) {
+    width: auto;
+    flex: 1 1 calc(50% - 0.5rem);
+  }
+  background-color: white;
+  color: black;
 }

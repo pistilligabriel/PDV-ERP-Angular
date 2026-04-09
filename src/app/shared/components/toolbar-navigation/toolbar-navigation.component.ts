@@ -4,6 +4,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { MenuItem } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { Subject, takeUntil } from 'rxjs';
+import { TipoEmpresa } from 'src/app/models/enums/empresa/TipoEmpresa.enum';
 import { Usuario } from 'src/app/modules/cadastro/usuario/page/usuario.component';
 import { Config } from 'src/app/modules/configuracoes/configuracoes.component';
 import { UsuarioContextService } from 'src/app/services/cadastro/usuario/usuario-context.service';
@@ -29,6 +30,8 @@ export class ToolbarNavigationComponent implements OnInit, OnDestroy {
   nomeEmpresa!: string;
 
   infoConfig!: Config;
+
+  TipoEmpresa = TipoEmpresa;
 
   items: MenuItem[] | undefined;
 

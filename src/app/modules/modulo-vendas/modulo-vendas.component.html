@@ -143,8 +143,12 @@
             </p-table>
             <p-dialog header="Selecione o tipo da venda" [(visible)]="mostrarDialogTipoVenda"  [draggable]="false" [resizable]="false" [modal]="true" [style]="{width:'25vw'}">
               <div class="flex justify-content-between align-items-center">
-                <p-button (onClick)="selecionarTipo('NOVO')" label="Novo" [raised]="true" severity="secondary" [rounded]="true"/>
-                <p-button (onClick)="selecionarTipo('RECAPAGEM')" label="Recapagem" [raised]="true"
+                <p-button *ngIf="empresa.tipoEmpresa === TipoEmpresa.PECAS" (onClick)="selecionarTipo('NOVO')" label="Novo" [raised]="true" severity="secondary" [rounded]="true"/>
+                <p-button *ngIf="empresa.tipoEmpresa === TipoEmpresa.PECAS" (onClick)="selecionarTipo('RECAPAGEM')" label="Recapagem" [raised]="true"
+                  severity="secondary" [rounded]="true"/>
+                <p-button *ngIf="empresa.tipoEmpresa === TipoEmpresa.ROUPAS" (onClick)="selecionarTipo('VENDA')" label="Venda" [raised]="true"
+                  severity="secondary" [rounded]="true"/>
+                <p-button *ngIf="empresa.tipoEmpresa === TipoEmpresa.ROUPAS" (onClick)="selecionarTipo('CONDICIONAL')" label="Condicional" [raised]="true"
                   severity="secondary" [rounded]="true"/>
               </div>
             </p-dialog>

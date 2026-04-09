@@ -385,7 +385,7 @@
                     />
                     <label for="float-label">Descrição</label>
                   </div>
-                  <div class="p-float-label flex flex-column mt-2 mr-4">
+                  <div class="p-float-label flex flex-column mt-2 mr-4" *ngIf = "empresa.tipoEmpresa === TipoEmpresa.PECAS">
                     <p-dropdown
                       optionValue="value"
                       optionLabel="label"
@@ -425,6 +425,17 @@
                     <label for="float-label">Marca</label>
                   </div>
                   <div class="p-float-label flex flex-column mr-2">
+                    <p-dropdown
+                      optionValue="value"
+                      optionLabel="label"
+                      formControlName="tamanho"
+                      [options]="tamanhos"
+                      [(ngModel)]="tamanhoSelecionado"
+                      [style]="{ width: '250px' }"
+                    />
+                    <label for="float-label">Tamanho</label>
+                  </div>
+                  <div class="p-float-label flex flex-column mr-2" *ngIf = "empresa.tipoEmpresa === TipoEmpresa.PECAS">
                     <input
                       pInputText
                       formControlName="modelo"
@@ -436,7 +447,7 @@
               </div>
               <div class="flex flex-row mt-2 mr-2">
                 <div
-                  *ngIf="usuario?.tipo == Tipo.ADMIN"
+                  *ngIf="usuario.tipo == Tipo.ADMIN"
                   class="p-float-label flex flex-column mr-2"
                 >
                   <p-inputNumber
@@ -450,7 +461,7 @@
                 </div>
 
                 <div class="p-float-label flex flex-column mr-2">
-                  <p-inputNumber formControlName="estoque" inputId="estoque" />
+                  <p-inputNumber formControlName="estoque"  />
                   <label for="float-label">Estoque</label>
                 </div>
 
@@ -466,7 +477,7 @@
                 </div>
 
                 <div
-                  *ngIf="usuario?.tipo == Tipo.ADMIN"
+                  *ngIf="usuario.tipo == Tipo.ADMIN"
                   class="p-float-label flex flex-column mr-2"
                 >
                   <p-inputNumber

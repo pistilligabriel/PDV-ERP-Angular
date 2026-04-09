@@ -7,6 +7,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { DynamicDialogModule } from 'primeng/dynamicdialog';
+import { FieldsetModule } from 'primeng/fieldset';
 import { FileUploadModule } from 'primeng/fileupload';
 import { InputMaskModule } from 'primeng/inputmask';
 import { InputNumberModule } from 'primeng/inputnumber';
@@ -65,7 +66,8 @@ import { ContextMenuModule } from 'primeng/contextmenu';
     SelectButtonModule,
     DialogModule,
     FileUploadModule,
-    ContextMenuModule
+    ContextMenuModule,
+    FieldsetModule
   ],
   exports: [
     CardModule,
@@ -98,7 +100,8 @@ import { ContextMenuModule } from 'primeng/contextmenu';
     SelectButtonModule,
     DialogModule,
     FileUploadModule,
-    ContextMenuModule
+    ContextMenuModule,
+    FieldsetModule
   ]
 })
 export class PrimengModule { }

@@ -1,6 +1,6 @@
 import { registerLocaleData } from '@angular/common';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import localePt from '@angular/common/locales/pt'
+import localePt from '@angular/common/locales/pt';
 import { ProdutoService } from 'src/app/services/cadastro/produto/produto.service';
 import { Produto } from '../cadastro/produto/produto.component';
 import { Clientes } from '../cadastro/cliente/page/cliente.component';
@@ -18,13 +18,16 @@ import { VendaContextService } from 'src/app/services/faturamento/venda/venda-co
 import { Table } from 'primeng/table';
 import { TipoProduto } from 'src/app/models/enums/products/TipoProduto.enum';
 import { Tipo } from 'src/app/models/enums/users/Tipo.enum';
-
+import { Config } from '../configuracoes/configuracoes.component';
+import { TipoEmpresa } from 'src/app/models/enums/empresa/TipoEmpresa.enum';
+import { ConfigService } from 'src/app/services/configuracoes/configuracoes.service';
+import { Subject, takeUntil } from 'rxjs';
 
 registerLocaleData(localePt, 'pt-BR');
 
 export interface PedidoDto {
   integrante: Clientes;
-  tipoVenda: 'NOVO' | 'RECAPAGEM',
+  tipoVenda: 'NOVO' | 'RECAPAGEM' | 'VENDA' | 'CONDICIONAL';
   desconto: number;
   dataEmissao?: string;
   status: Status;
@@ -52,18 +55,17 @@ export interface ProdutoVenda {
   quantidade: number;
 }
 
-
 @Component({
   selector: 'app-venda',
   templateUrl: './venda.component.html',
-  styleUrls: ['./venda.component.scss']
+  styleUrls: ['./venda.component.scss'],
 })
 export class VendaComponent implements OnInit {
+  private readonly destroy$: Subject<void> = new Subject<void>();
 
+  @ViewChild('tabelaProdutoDialog') tabelaProdutoDialog: Table | undefined;
 
-  @ViewChild('tabelaProdutoDialog') tabelaProdutoDialog: Table | undefined
-
-  tipoVenda: 'NOVO' | 'RECAPAGEM' | null = null;
+  tipoVenda: 'NOVO' | 'RECAPAGEM' | 'VENDA' | 'CONDICIONAL' | null = null;
 
   produtos: ProdutoVenda[] = [];
 
@@ -101,6 +103,10 @@ export class VendaComponent implements OnInit {
 
   usuario!: UsuarioPerfil;
 
+  empresa!: Config;
+
+  TipoEmpresa = TipoEmpresa;
+
   Tipo = Tipo;
 
   constructor(
@@ -110,12 +116,11 @@ export class VendaComponent implements OnInit {
     private pedidoService: VendaService,
     private messageService: MessageService,
     private router: Router,
-    private vendaContext: VendaContextService
-  ) { }
-
+    private vendaContext: VendaContextService,
+    private configService: ConfigService,
+  ) {}
 
   ngOnInit(): void {
-
     this.tipoVenda = this.vendaContext.getTipoVenda();
 
     if (!this.tipoVenda) {
@@ -123,18 +128,20 @@ export class VendaComponent implements OnInit {
       console.warn('Tipo da venda não selecionado.');
     }
 
-    this.clienteService.getAllCliente().subscribe(c => {
+    this.clienteService.getAllCliente().subscribe((c) => {
       this.clientes = c;
-    })
+    });
 
-    this.produtoService.getAllProdutosVenda().subscribe(produtos => {
+    this.produtoService.getAllProdutosVenda().subscribe((produtos) => {
       this.catalogo = produtos;
-    })
+    });
 
-    this.total = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
+    this.total = this.produtos.reduce(
+      (sum, p) => sum + p.precoVenda * p.quantidade,
+      0,
+    );
 
-    console.log(this.catalogo)
-
+    console.log(this.catalogo);
 
     //   this.usuarioService.getUsuarioLogado().subscribe({
     //     next: (usuario) => {
@@ -145,12 +152,27 @@ export class VendaComponent implements OnInit {
     //     }
     //   }
     // )
+
+    this.configService
+      .getConfig()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (config) => {
+          this.empresa = config;
+        },
+        error: (e) => {
+          console.log('Não foi possível obter a configuração da empresa', e);
+        },
+      });
   }
 
   valorPesquisa!: string;
 
   applyFilterGlobal($event: any, stringVal: any) {
-    this.tabelaProdutoDialog!.filterGlobal(($event.target as HTMLInputElement).value, stringVal);
+    this.tabelaProdutoDialog!.filterGlobal(
+      ($event.target as HTMLInputElement).value,
+      stringVal,
+    );
   }
 
   get catalogoFiltrado(): ProdutoVenda[] {
@@ -158,15 +180,19 @@ export class VendaComponent implements OnInit {
       return this.catalogo || [];
     }
 
-    return this.catalogo.filter(produto => {
+    return this.catalogo.filter((produto) => {
       // Ajuste a lógica de filtro conforme suas regras de negócio
-      switch (this.tipoVenda) {
-        case 'NOVO':
-          return produto.tipoProduto === TipoProduto.NOVO;
-        case 'RECAPAGEM':
-          return produto.tipoProduto === TipoProduto.RECAPAGEM;
-        default:
-          return true;
+      if (this.empresa.tipoEmpresa === TipoEmpresa.PECAS) {
+        switch (this.tipoVenda) {
+          case 'NOVO':
+            return produto.tipoProduto === TipoProduto.NOVO;
+          case 'RECAPAGEM':
+            return produto.tipoProduto === TipoProduto.RECAPAGEM;
+          default:
+            return true;
+        }
+      } else {
+        return true; // Se não for empresa de peças, mostra todos os produtos
       }
     });
   }
@@ -179,20 +205,30 @@ export class VendaComponent implements OnInit {
   adicionarProduto() {
     if (!this.codigoProduto) return;
 
-    const produtoCatalogo = this.catalogo?.find(p => p.codigo === this.codigoProduto);
+    const produtoCatalogo = this.catalogo?.find(
+      (p) => p.codigo === this.codigoProduto,
+    );
 
     if (produtoCatalogo) {
-      const existente = this.produtos.find(p => p.descricao === produtoCatalogo.descricao);
+      const existente = this.produtos.find(
+        (p) => p.descricao === produtoCatalogo.descricao,
+      );
       if (existente) {
         const novaQuantidade = existente.quantidade + this.quantidade;
-        if (produtoCatalogo.estoque !== null && novaQuantidade > produtoCatalogo.estoque) {
+        if (
+          produtoCatalogo.estoque !== null &&
+          novaQuantidade > produtoCatalogo.estoque
+        ) {
           alert('Quantidade solicitada maior que o estoque disponível!');
           return;
         }
         existente.quantidade = novaQuantidade;
       } else {
         const produtoConvertido = this.converterProdutoParaDto(produtoCatalogo);
-        if (produtoConvertido.estoque !== null && produtoConvertido.estoque < this.quantidade) {
+        if (
+          produtoConvertido.estoque !== null &&
+          produtoConvertido.estoque < this.quantidade
+        ) {
           alert('Quantidade solicitada maior que o estoque disponível!');
           return;
         } else {
@@ -208,12 +244,15 @@ export class VendaComponent implements OnInit {
   }
 
   removerProduto(codigo: bigint) {
-    this.produtos = this.produtos.filter(p => p.codigo !== codigo);
+    this.produtos = this.produtos.filter((p) => p.codigo !== codigo);
     this.atualizarTotal();
   }
 
   atualizarTotal() {
-    const totalBruto = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
+    const totalBruto = this.produtos.reduce(
+      (sum, p) => sum + p.precoVenda * p.quantidade,
+      0,
+    );
     this.total = totalBruto - this.descontoAplicado;
     this.totalSemDesconto = totalBruto; //Atualiza o total sem desconto
   }
@@ -229,17 +268,21 @@ export class VendaComponent implements OnInit {
   }
 
   cartaoCreditoAVista() {
-    this.tipoFinalizacaoVenda = FormaPagamento.CARTAO_CREDITO_A_VISTA,
-      this.finalizarVenda();
+    ((this.tipoFinalizacaoVenda = FormaPagamento.CARTAO_CREDITO_A_VISTA),
+      this.finalizarVenda());
   }
 
-
   cartaoAPrazo() {
-    this.tipoFinalizacaoVenda = FormaPagamento.CARTAO_PARCELADO,
-      this.mostrarDialogCartaoPrazo = false;
+    ((this.tipoFinalizacaoVenda = FormaPagamento.CARTAO_PARCELADO),
+      (this.mostrarDialogCartaoPrazo = false));
     setTimeout(() => {
       this.finalizarVenda();
     }, 500);
+  }
+
+    finalizarCondicional() {
+      this.tipoFinalizacaoVenda = FormaPagamento.CONDICIONAL;
+      this.finalizarVenda();
   }
 
   finalizarVenda() {
@@ -252,10 +295,10 @@ export class VendaComponent implements OnInit {
       return;
     }
 
-    const produtosCorrigidos: ProdutoVenda[] = this.produtos.map(produto => ({
+    const produtosCorrigidos: ProdutoVenda[] = this.produtos.map((produto) => ({
       codigo: produto.codigo,
       descricao: produto.descricao,
-      tipoProduto:produto.tipoProduto,
+      tipoProduto: produto.tipoProduto,
       observacao: produto.observacao ?? null,
       unidadeVenda: produto.unidadeVenda ?? null,
       fabricante: produto.fabricante ?? null,
@@ -266,39 +309,52 @@ export class VendaComponent implements OnInit {
       quantidade: produto.quantidade ?? 1,
     }));
 
-    console.log('Venda finalizada:', produtosCorrigidos, this.cliente, this.tipoFinalizacaoVenda, this.parcelas);
+    console.log(
+      'Venda finalizada:',
+      produtosCorrigidos,
+      this.cliente,
+      this.tipoFinalizacaoVenda,
+      this.parcelas,
+    );
 
     const pedido: PedidoDto = {
       integrante: this.cliente as Clientes,
       produtos: produtosCorrigidos,
       status: Status.FINALIZADO,
-      tipoVenda: this.tipoVenda as 'NOVO' | 'RECAPAGEM',
+      tipoVenda: this.tipoVenda as
+        | 'NOVO'
+        | 'RECAPAGEM'
+        | 'VENDA'
+        | 'CONDICIONAL',
       formaPagamento: this.tipoFinalizacaoVenda as FormaPagamento,
       porcentagemDesconto: this.porcentagemDesconto,
       parcelas: this.parcelas as number,
       desconto: this.descontoAplicado as number,
-      
+
       total: this.total,
-      totalSemDesconto: this.totalSemDesconto // Inclui o total sem desconto
+      totalSemDesconto: this.totalSemDesconto, // Inclui o total sem desconto
     };
-    this.pedidoService.criarPedido(pedido).subscribe(response => {
-      console.log('Pedido criado com sucesso:', response);
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Sucesso',
-        detail: 'Pedido criado com sucesso!'
-      });
-      this.router.navigate(['/faturamento/modulo-vendas']);
-      this.reset();
-    }, error => {
-      console.error('Erro ao criar pedido:', error, pedido);
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Erro ao criar pedido!'
-      });
-      this.reset();
-    });
+    this.pedidoService.criarPedido(pedido).subscribe(
+      (response) => {
+        console.log('Pedido criado com sucesso:', response);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: 'Pedido criado com sucesso!',
+        });
+        this.router.navigate(['/faturamento/modulo-vendas']);
+        this.reset();
+      },
+      (error) => {
+        console.error('Erro ao criar pedido:', error, pedido);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Erro ao criar pedido!',
+        });
+        this.reset();
+      },
+    );
 
     alert('Venda finalizada com sucesso!');
   }
@@ -323,17 +379,20 @@ export class VendaComponent implements OnInit {
     this.mostrarDesconto = true;
   }
 
-
   mostrarTelaCartaoPrazo() {
     this.mostrarDialogCartaoPrazo = true;
   }
 
-
   aplicarDesconto() {
     // Aplica o desconto ao confirmar
-    const totalBruto = this.produtos.reduce((sum, p) => sum + (p.precoVenda * p.quantidade), 0);
-    this.descontoAplicado = this.valorDesconto ? totalBruto * (this.valorDesconto / 100) : 0;
-    this.porcentagemDesconto = this.descontoAplicado / totalBruto * 100;
+    const totalBruto = this.produtos.reduce(
+      (sum, p) => sum + p.precoVenda * p.quantidade,
+      0,
+    );
+    this.descontoAplicado = this.valorDesconto
+      ? totalBruto * (this.valorDesconto / 100)
+      : 0;
+    this.porcentagemDesconto = (this.descontoAplicado / totalBruto) * 100;
     this.mostrarDesconto = false;
     this.atualizarTotal();
   }
@@ -349,9 +408,11 @@ export class VendaComponent implements OnInit {
   }
 
   cartaoDebito() {
-    this.tipoFinalizacaoVenda = FormaPagamento.CARTAO_DEBITO,
-      this.finalizarVenda();
+    ((this.tipoFinalizacaoVenda = FormaPagamento.CARTAO_DEBITO),
+      this.finalizarVenda());
   }
+
+
 
   reset() {
     this.produtos = [];
@@ -366,7 +427,7 @@ export class VendaComponent implements OnInit {
   converterProdutoParaDto(produto: any): ProdutoVenda {
     return {
       descricao: produto.descricao ?? null,
-      tipoProduto:produto.tipoProduto ?? null,
+      tipoProduto: produto.tipoProduto ?? null,
       precoVenda: produto.precoVenda ?? null,
       precoCusto: produto.precoCusto ?? null,
       unidadeVenda: produto.unidadeVenda?.codigo ?? null,
@@ -375,7 +436,7 @@ export class VendaComponent implements OnInit {
       modelo: produto.modelo ?? null,
       codigo: produto.codigo,
       estoque: produto.estoque,
-      observacao: produto.observacao
+      observacao: produto.observacao,
     };
   }
 
@@ -396,4 +457,3 @@ export class VendaComponent implements OnInit {
     this.tabelaProdutoDialog?.reset();
   }
 }
-
