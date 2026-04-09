@@ -25,7 +25,6 @@ import { VendaComponent } from './venda.component';
   ],
   providers: [
     MessageService,
-    CookieService,
     ConfirmationService
   ],
 })

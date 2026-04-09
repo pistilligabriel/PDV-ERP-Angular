@@ -9,7 +9,7 @@
 <div>
   <div class="grid">
     <div class="col-12">
-      <p-card header="Vendas" styleClass="shadow-3 m-1 text-indigo-800">
+      <p-card header="Vendas" styleClass="shadow-3 m-1 text-green-900">
         <!--TABELA DE VENDAS-->
         <div *ngIf="!showForm" class="grid">
           <div class="col-12">
@@ -31,13 +31,13 @@
               <ng-template pTemplate="caption">
                 <div class="flex">
                   <div class="mr-5">
-                    <button type="button" class="mr-2" pButton pRipple icon="pi pi-plus" pTooltip="Nova Venda"
+                    <button type="button" class="mr-2 bg-green-900" pButton pRipple icon="pi pi-plus" pTooltip="Nova Venda"
                       (click)="abrirDialogTipoVenda()">
                     </button>
                   </div>
 
                   <div class="flex justify-content-center mr-5">
-                    <button type="button" pButton pRipple icon="pi pi-file" (click)="tabelaVenda?.exportCSV()"
+                    <button type="button" pButton pRipple icon="pi pi-file"  (click)="tabelaVenda?.exportCSV()"
                       class="mr-2" pTooltip="CSV - Exportar os dados da tabela com formato csv."
                       tooltipPosition="bottom"></button>
                     <button type="button" pButton pRipple icon="pi pi-file-excel" (click)="exportExcel()"
@@ -58,9 +58,9 @@
                     <input pInputText type="text" [(ngModel)]="valorPesquisa"
                       (input)="applyFilterGlobal($event, 'contains')" placeholder="Pesquisar" />
                   </span>
-                  <button pButton label="Limpar" class="p-button-outlined" icon="pi pi-filter-slash"
+                  <button pButton label="Limpar" class="p-button-outlined text-green-900" icon="pi pi-filter-slash"
                     (click)="clear(tabelaVenda)"></button>
-                  <button pButton class="p-button-outlined ml-3" icon="pi pi-refresh"
+                  <button pButton class="p-button-outlined ml-3  text-green-900" icon="pi pi-refresh"
                     (click)="atualizarTabela()"></button>
                 </div>
               </ng-template>
@@ -143,12 +143,12 @@
             </p-table>
             <p-dialog header="Selecione o tipo da venda" [(visible)]="mostrarDialogTipoVenda"  [draggable]="false" [resizable]="false" [modal]="true" [style]="{width:'25vw'}">
               <div class="flex justify-content-between align-items-center">
-                <p-button *ngIf="empresa.tipoEmpresa === TipoEmpresa.PECAS" (onClick)="selecionarTipo('NOVO')" label="Novo" [raised]="true" severity="secondary" [rounded]="true"/>
-                <p-button *ngIf="empresa.tipoEmpresa === TipoEmpresa.PECAS" (onClick)="selecionarTipo('RECAPAGEM')" label="Recapagem" [raised]="true"
+                <p-button *ngIf="empresa?.tipoEmpresa === TipoEmpresa.PECAS" (onClick)="selecionarTipo('NOVO')" label="Novo" [raised]="true" severity="secondary" [rounded]="true"/>
+                <p-button *ngIf="empresa?.tipoEmpresa === TipoEmpresa.PECAS" (onClick)="selecionarTipo('RECAPAGEM')" label="Recapagem" [raised]="true"
                   severity="secondary" [rounded]="true"/>
-                <p-button *ngIf="empresa.tipoEmpresa === TipoEmpresa.ROUPAS" (onClick)="selecionarTipo('VENDA')" label="Venda" [raised]="true"
+                <p-button *ngIf="empresa?.tipoEmpresa === TipoEmpresa.ROUPAS" (onClick)="selecionarTipo('VENDA')" label="Venda" [raised]="true"
                   severity="secondary" [rounded]="true"/>
-                <p-button *ngIf="empresa.tipoEmpresa === TipoEmpresa.ROUPAS" (onClick)="selecionarTipo('CONDICIONAL')" label="Condicional" [raised]="true"
+                <p-button *ngIf="empresa?.tipoEmpresa === TipoEmpresa.ROUPAS" (onClick)="selecionarTipo('CONDICIONAL')" label="Condicional" [raised]="true"
                   severity="secondary" [rounded]="true"/>
               </div>
             </p-dialog>

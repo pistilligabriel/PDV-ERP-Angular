@@ -143,15 +143,15 @@ export class VendaComponent implements OnInit {
 
     console.log(this.catalogo);
 
-    //   this.usuarioService.getUsuarioLogado().subscribe({
-    //     next: (usuario) => {
-    //       this.usuario = usuario
-    //     },
-    //     error: (err) => {
-    //       console.log('Não foi possível obter usuario logado', err)
-    //     }
-    //   }
-    // )
+      this.usuarioService.getUsuarioLogado().subscribe({
+        next: (usuario) => {
+          this.usuario = usuario
+        },
+        error: (err) => {
+          console.log('Não foi possível obter usuario logado', err)
+        }
+      }
+    )
 
     this.configService
       .getConfig()
@@ -287,7 +287,12 @@ export class VendaComponent implements OnInit {
 
   finalizarVenda() {
     if (this.produtos.length === 0) {
-      alert('Nenhum produto na venda!');
+      this.messageService.add({
+        severity:'warn',
+        summary:'Atenção',
+        detail:'Adicione pelo menos um produto para finalizar a venda!',
+        life:4000
+      })
       return;
     }
     if (!this.cliente) {

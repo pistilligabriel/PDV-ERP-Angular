@@ -1,8 +1,8 @@
-<p-toolbar styleClass="bg-pink-300">
+<p-toolbar styleClass="bg-green-900">
 
   <div class="p-toolbar-group-start">
     
-    <button [style]="{backgroundColor:'white', color:'#fda5d5', outline:'none'}" #btn type="button" pButton icon="pi pi-bars" (click)="menu.toggle($event)"></button>
+    <button [style]="{backgroundColor:'#0E4F26', color:'white', outline:'none'}" #btn type="button" pButton icon="pi pi-bars" (click)="menu.toggle($event)"></button>
     <p-tieredMenu #menu [model]="items" [popup]="true"></p-tieredMenu>
   </div>
 
