@@ -95,38 +95,38 @@ export class ToolbarNavigationComponent implements OnInit, OnDestroy {
           // },
         ],
       },
-      // {
-      //   label: 'Financeiro',
-      //   icon: 'pi pi-fw pi-calculator',
-      //   items: [
-      //     {
-      //       label: 'Titulo',
-      //       items: [
-      //         {
-      //           label: 'Receber',
-      //           routerLink: ['/financial/account/receive'],
-      //         },
-      //         {
-      //           label: 'Pagar',
-      //           routerLink: ['/financial/account/pay'],
-      //         },
-      //       ],
-      //     },
-      //     {
-      //       label: 'Movimentação',
-      //       items: [
-      //         {
-      //           label: 'Entrada',
-      //           routerLink: ['/financial/movement/entry'],
-      //         },
-      //         {
-      //           label: 'Saída',
-      //           routerLink: ['/financial/movement/exit'],
-      //         },
-      //       ],
-      //     }
-      //   ],
-      // },
+      {
+        label: 'Financeiro',
+        icon: 'pi pi-fw pi-calculator',
+        items: [
+          {
+            label: 'Titulo',
+            items: [
+              {
+                label: 'Receber',
+                routerLink: ['/financeiro/titulo-receber'],
+              },
+              // {
+              //   label: 'Pagar',
+              //   routerLink: ['/financial/account/pay'],
+              // },
+            ],
+          },
+          // {
+          //   label: 'Movimentação',
+          //   items: [
+          //     {
+          //       label: 'Entrada',
+          //       routerLink: ['/financial/movement/entry'],
+          //     },
+          //     {
+          //       label: 'Saída',
+          //       routerLink: ['/financial/movement/exit'],
+          //     },
+          //   ],
+          // }
+        ],
+      },
       {
         label: 'Configuração',
         icon: 'pi pi-fw pi-database',

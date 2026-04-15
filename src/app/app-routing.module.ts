@@ -73,6 +73,10 @@ const routes: Routes = [
       ),
   },
   {
+    path:'financeiro/titulo-receber',
+    loadChildren: () => import('./modules/modulo-financeiro/modulo-financeiro.module').then((m) => m.ModuloFinanceiroModule)
+  },
+  {
     path: 'configuracoes',
     loadChildren: () =>
       import('./modules/configuracoes/configuracoes.module').then(

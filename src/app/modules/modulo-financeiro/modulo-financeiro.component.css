@@ -1,0 +1,14 @@
+::ng-deep .row-cancelado {
+  background-color: #ff3636 !important;
+  color:white
+}
+
+::ng-deep .row-ativo {
+  background-color: #04bb3b !important;
+  color:white
+}
+
+.icon-color{
+  color:black;
+}
+

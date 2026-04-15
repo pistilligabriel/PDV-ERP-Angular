@@ -1,0 +1,397 @@
+<div class="card flex justify-content-center gap-2">
+  <p-toast></p-toast>
+  <p-confirmDialog
+    header="Título Receber"
+    icon="pi pi-exclamation-triangle"
+    [acceptLabel]="'OK'"
+    [rejectVisible]="false"
+    [closable]="false"
+  ></p-confirmDialog>
+</div>
+
+<app-toolbar-navigation></app-toolbar-navigation>
+
+<div>
+  <div class="grid">
+    <div class="col-12">
+      <p-card header="Título Receber" styleClass="shadow-3 m-1 text-green-900">
+        <!--TABELA DE TITULOS-->
+        <div *ngIf="!showForm" class="grid">
+          <div class="col-12">
+            <div class="flex justify-content-end"></div>
+            <p-table
+              #tabelaFinanceiro
+              [columns]="colunasSelecionadas"
+              [value]="financeiroDatas"
+              [(selection)]="financeiroSelecionado"
+              (onRowSelect)="onRowSelect($event)"
+              selectionMode="single"
+              [rows]="10"
+              [paginator]="true"
+              [responsive]="true"
+              [resizableColumns]="true"
+              columnResizeMode="fit"
+              styleClass="p-datatable-gridlines"
+              [tableStyle]="{ 'min-width': '50rem' }"
+              [rowHover]="true"
+              [showCurrentPageReport]="true"
+              [rowsPerPageOptions]="[10, 25, 50, 100]"
+              [globalFilterFields]="[
+                'codigo',
+                'status',
+                'dataEmissao',
+                'cliente',
+                'valorTotal',
+                'formaPagamento',
+              ]"
+              [exportHeader]="'customExportHeader'"
+              dataKey="codigo"
+              currentPageReportTemplate="Mostrando {first} de {last} de {totalRecords} registros"
+              [filterDelay]="0"
+              [sortField]="'codigo'"
+              [sortOrder]="-1"
+            >
+              <ng-template pTemplate="caption">
+                <div class="flex">
+                  <div class="mr-5">
+                    <button
+                      type="button"
+                      class="mr-2 bg-green-900"
+                      pButton
+                      pRipple
+                      icon="pi pi-plus"
+                      (click)="onAddButtonClick()"
+                      pTooltip="Novo Título"
+                    ></button>
+                  </div>
+
+                  <div class="flex justify-content-center mr-5">
+                    <button
+                      type="button"
+                      pButton
+                      pRipple
+                      icon="pi pi-file"
+                      (click)="tabelaFinanceiro?.exportCSV()"
+                      class="mr-2"
+                      pTooltip="CSV - Exportar os dados da tabela com formato csv."
+                      tooltipPosition="bottom"
+                    ></button>
+                    <button
+                      type="button"
+                      pButton
+                      pRipple
+                      icon="pi pi-file-excel"
+                      (click)="exportExcel()"
+                      class="p-button-success mr-2"
+                      pTooltip="XLS - Exportar os dados da tabela com formato xls."
+                      tooltipPosition="bottom"
+                    ></button>
+                    <button
+                      type="button"
+                      pButton
+                      pRipple
+                      icon="pi pi-file-pdf"
+                      (click)="exportPdf()"
+                      class="p-button-warning mr-2"
+                      pTooltip="PDF - Exportar os dados da tabela com formato pdf."
+                      tooltipPosition="bottom"
+                    ></button>
+                  </div>
+
+                  <p-multiSelect
+                    pTooltip="Desmarque as colunas que serão ocultadas"
+                    [options]="cols"
+                    [(ngModel)]="colunasSelecionadas"
+                    optionLabel="header"
+                    selectedItemsLabel="Ocultar Colunas"
+                    [style]="{ 'min-width': '200px' }"
+                    placeholder="Selecione as Colunas"
+                  >
+                  </p-multiSelect>
+
+                  <span class="p-input-icon-left ml-auto mr-2">
+                    <i class="pi pi-search"></i>
+                    <input
+                      pInputText
+                      type="text"
+                      [(ngModel)]="valorPesquisa"
+                      (input)="applyFilterGlobal($event, 'contains')"
+                      placeholder="Pesquisar"
+                    />
+                  </span>
+                  <button
+                    pButton
+                    label="Limpar"
+                    class="p-button-outlined text-green-900"
+                    icon="pi pi-filter-slash"
+                    (click)="clear(tabelaFinanceiro)"
+                  ></button>
+                  <button
+                    pButton
+                    class="p-button-outlined ml-3 text-green-900"
+                    icon="pi pi-refresh"
+                    (click)="atualizarTabela()"
+                  ></button>
+                </div>
+              </ng-template>
+
+              <ng-template pTemplate="header" let-columns>
+                <tr>
+                  <th style="width: 3rem">Ações</th>
+                  <th
+                    pResizableColumn
+                    pSortableColumn="codigo"
+                    style="width: 3rem"
+                  >
+                    <div
+                      class="flex justify-content-between align-items-center"
+                    >
+                      <div
+                        class="flex justify-content-between align-items-center"
+                      >
+                        Código
+                      </div>
+                      <div
+                        class="flex justify-content-between align-items-center"
+                      >
+                        <p-sortIcon field="codigo"></p-sortIcon>
+                        <p-columnFilter
+                          type="text"
+                          field="codigo"
+                          display="menu"
+                          matchMode="contains"
+                          [showMatchModes]="true"
+                          [showOperator]="false"
+                          [showAddButton]="true"
+                        ></p-columnFilter>
+                      </div>
+                    </div>
+                  </th>
+                  <th
+                    *ngFor="let col of columns"
+                    pResizableColumn
+                    [pSortableColumn]="col.field"
+                  >
+                    <div
+                      class="flex justify-content-between align-items-center"
+                    >
+                      <div
+                        class="flex justify-content-between align-items-center"
+                      >
+                        {{ col.header }}
+                      </div>
+                      <div
+                        class="flex justify-content-between align-items-center"
+                      >
+                        <p-sortIcon field="{{ col.field }}"></p-sortIcon>
+                        <p-columnFilter
+                          type="text"
+                          [field]="col.field"
+                          display="menu"
+                          matchMode="contains"
+                          [showMatchModes]="true"
+                          [showOperator]="false"
+                          [showAddButton]="true"
+                        ></p-columnFilter>
+                      </div>
+                    </div>
+                  </th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-titulo let-columns="columns">
+                <tr
+                  [ngClass]="getRowClass(titulo)"
+                  (contextmenu)="onContextMenu($event, titulo)"
+                >
+                  <td>
+                    <div
+                      class="flex justify-content-center gap-2 align-content-center align-items-center"
+                    >
+                      <button
+                        pButton
+                        pRipple
+                        class="p-button-rounded p-button-text p-button-info icon-color"
+                        icon="pi pi-eye"
+                        pTooltip="Visualizar Título"
+                        (click)="visualizarTitulo(titulo?.codigo)"
+                      ></button>
+                    </div>
+                  </td>
+                  <td>{{ titulo.codigo }}</td>
+                  <ng-container>
+                    <td>{{ titulo?.status }}</td>
+                    <td>{{ titulo?.dataEmissao }}</td>
+                    <td>{{ titulo?.integrante?.nomeCompleto }}</td>
+                    <td>R${{ titulo.totalSemDesconto | number: "1.2-2" }}</td>
+                    <td>R${{ titulo?.desconto | number: "1.2-2" }}</td>
+                    <td>R${{ titulo?.total | number: "1.2-2" }}</td>
+                    <td>{{ titulo.formaPagamento }}</td>
+                    <td>
+                      {{ titulo.parcelas == 0 ? "À Vista" : titulo?.parcelas }}
+                    </td>
+                    <ng-template #statusColumn>
+                      <td>
+                        <p-tag
+                          [value]="titulo.status"
+                          [severity]="getSeverity(titulo.status)"
+                        ></p-tag>
+                      </td>
+                    </ng-template>
+                  </ng-container>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="summary">
+                <div class="text-center">
+                  Total de
+                  {{ financeiroDatas ? financeiroDatas.length : 0 }} Títulos
+                  Cadastrados.
+                </div>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="8">Nenhum informação foi encontrada.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+        <p-contextMenu #cm [model]="items" (onHide)="onHide()" />
+
+        <!-- FORMULARIO DO TITULO A RECEBER -->
+
+        <div *ngIf="showForm" class="mt-2">
+          <div class="gap-4">
+            <form
+              [formGroup]="tituloForm"
+              (ngSubmit)="adicionarOuEditarTitulo()"
+            >
+              <div class="card flex flex-column md:flex-column gap-4">
+                <div class="flex flex-row">
+                  <div class="flex flex-column mr-2">
+                    <label for="label">Código</label>
+                    <input pInputText formControlName="codigo" />
+                  </div>
+
+                  <div class="flex flex-column mr-2">
+                    <label for="label">Status</label>
+                    <input pInputText formControlName="status" />
+                  </div>
+
+                  <div class="flex flex-column mr-2">
+                    <label for="label">Empresa</label>
+                    <input pInputText formControlName="empresa" />
+                  </div>
+
+                  <div class="flex flex-column mr-2">
+                    <label for="label">Versão</label>
+                    <input pInputText type="text" formControlName="versao" />
+                  </div>
+                </div>
+
+                <div class="card flex flex-column md:flex-column gap-4">
+                  <div class="flex flex-row">
+                    <div class="flex flex-column mr-2">
+                      <label for="label">Data Lançamento</label>
+                      <input
+                        pInputText
+                        type="text"
+                        formControlName="dataCriacao"
+                      />
+                    </div>
+                    <div class="flex flex-column mr-2">
+                      <label for="label">Data Vencimento</label>
+                      <input
+                        pInputText
+                        type="text"
+                        formControlName="dataVencimento"
+                      />
+                    </div>
+                    <div class="flex flex-column mr-2">
+                      <label for="label">Data Pagamento</label>
+                      <input
+                        pInputText
+                        type="text"
+                        formControlName="dataPagamento"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-row">
+                  <div class="p-float-label flex flex-column mt-2 mr-4">
+                    <input
+                      pInputText
+                      formControlName="descricao"
+                      style="width: 500px"
+                    />
+                    <label for="float-label">Descrição</label>
+                  </div>
+                </div>
+
+                <div class="flex flex-column mt-2 mr-4">
+                  <div class="p-float-label flex flex-column mr-2">
+                    <p-dropdown
+                      optionValue="value"
+                      optionLabel="label"
+                      formControlName="cliente"
+                      [options]="clientes"
+                      [(ngModel)]="clienteSelecionado"
+                      [style]="{ width: '500px' }"
+                    />
+                    <label for="float-label">Cliente</label>
+                  </div>
+                </div>
+
+                <div class="flex flex-row mt-2 mr-2 mb-4">
+                  <div class="p-float-label flex flex-column mr-2">
+                    <p-inputNumber
+                      formControlName="valorTotal"
+                      inputId="valor"
+                      mode="currency"
+                      currency="BRL"
+                      locale="pt-BR"
+                    />
+                    <label for="float-label">Valor Total</label>
+                  </div>
+                  <div class="p-float-label flex flex-column mr-2">
+                    <input pInputText formControlName="parcelas" type="number" />
+                    <label for="float-label">Parcelas</label>
+                  </div>
+                </div>
+              </div>
+            </form>
+
+            <div class="mt-2">
+              <div class="card flex flex-column md:flex-column gap-4">
+                <div
+                  class="flex flex-row justify-content-left align-content-center align-itens-center m-1 mt-2"
+                >
+                  <p-button
+                    class="mr-2"
+                    (onClick)="adicionarOuEditarTitulo()"
+                    [disabled]="!tituloForm.valid"
+                    type="submit"
+                    label="Confirmar"
+                  ></p-button>
+                  <p-button
+                    type="submit"
+                    label="Cancelar"
+                    styleClass="red-button"
+                    (onClick)="cancelarFormulario()"
+                  ></p-button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inserir separador para parte de vínculo do título com Venda -->
+
+        <!-- Vincular um título criado manual com alguma venda que não tem o titulo gerado -->
+      </p-card>
+    </div>
+  </div>
+</div>
