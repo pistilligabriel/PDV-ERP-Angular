@@ -15,9 +15,10 @@ export interface Config {
 }
 
 @Component({
-  selector: 'app-config',
-  templateUrl: './configuracoes.component.html',
-  styleUrls: [],
+    selector: 'app-config',
+    templateUrl: './configuracoes.component.html',
+    styleUrls: [],
+    standalone: false
 })
 export class ConfigComponent implements OnInit, OnDestroy {
   private readonly destroy$: Subject<void> = new Subject<void>();

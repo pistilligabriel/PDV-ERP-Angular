@@ -56,9 +56,10 @@ export interface ProdutoVenda {
 }
 
 @Component({
-  selector: 'app-venda',
-  templateUrl: './venda.component.html',
-  styleUrls: ['./venda.component.scss'],
+    selector: 'app-venda',
+    templateUrl: './venda.component.html',
+    styleUrls: ['./venda.component.scss'],
+    standalone: false
 })
 export class VendaComponent implements OnInit {
   private readonly destroy$: Subject<void> = new Subject<void>();

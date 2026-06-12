@@ -89,9 +89,10 @@ export interface EntradaAcertoEstoque{
 
 
 @Component({
-  selector: 'app-produto',
-  templateUrl: './produto.component.html',
-  styleUrls: []
+    selector: 'app-produto',
+    templateUrl: './produto.component.html',
+    styleUrls: [],
+    standalone: false
 })
 export class ProdutoComponent implements OnInit, OnDestroy {
 

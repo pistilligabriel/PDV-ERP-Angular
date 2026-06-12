@@ -42,9 +42,10 @@ export interface CarregarEditarUnidadeMedida {
 
 
 @Component({
-  selector: 'app-unidade-medida',
-  templateUrl: './unidade-medida.component.html',
-  styleUrls: []
+    selector: 'app-unidade-medida',
+    templateUrl: './unidade-medida.component.html',
+    styleUrls: [],
+    standalone: false
 })
 export class UnidadeMedidaComponent implements OnInit, OnDestroy {
 

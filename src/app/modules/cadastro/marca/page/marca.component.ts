@@ -39,9 +39,10 @@ export interface CarregarEditarMarca {
 
 
 @Component({
-  selector: 'app-marca',
-  templateUrl: './marca.component.html',
-  styleUrls: []
+    selector: 'app-marca',
+    templateUrl: './marca.component.html',
+    styleUrls: [],
+    standalone: false
 })
 export class MarcaComponent implements OnInit, OnDestroy {
 

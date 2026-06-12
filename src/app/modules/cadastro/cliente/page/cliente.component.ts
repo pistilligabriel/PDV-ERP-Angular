@@ -76,9 +76,10 @@ export interface DropdownUfOptions {
 
 
 @Component({
-  selector: 'app-cliente',
-  templateUrl: './cliente.component.html',
-  styleUrls: []
+    selector: 'app-cliente',
+    templateUrl: './cliente.component.html',
+    styleUrls: [],
+    standalone: false
 })
 export class ClienteComponent implements OnInit {
 

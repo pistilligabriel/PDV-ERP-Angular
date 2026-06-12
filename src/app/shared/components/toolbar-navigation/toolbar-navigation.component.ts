@@ -13,9 +13,10 @@ import { ConfigService } from 'src/app/services/configuracoes/configuracoes.serv
 import { VendaDialogService } from 'src/app/services/faturamento/venda/VendaDialogService.service';
 
 @Component({
-  selector: 'app-toolbar-navigation',
-  templateUrl: './toolbar-navigation.component.html',
-  styleUrls: ['./toolbar-navigation.component.css'],
+    selector: 'app-toolbar-navigation',
+    templateUrl: './toolbar-navigation.component.html',
+    styleUrls: ['./toolbar-navigation.component.css'],
+    standalone: false
 })
 export class ToolbarNavigationComponent implements OnInit, OnDestroy {
   

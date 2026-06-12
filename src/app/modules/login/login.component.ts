@@ -22,9 +22,10 @@ import { UsuarioContextService } from 'src/app/services/cadastro/usuario/usuario
 import { Usuario } from '../cadastro/usuario/page/usuario.component';
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
+    selector: 'app-login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.css'],
+    standalone: false
 })
 export class LoginComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

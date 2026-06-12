@@ -27,9 +27,10 @@ import { ConfigService } from 'src/app/services/configuracoes/configuracoes.serv
 registerLocaleData(localePt, 'pt-BR');
 
 @Component({
-  selector: 'app-modulo-vendas',
-  templateUrl: './modulo-vendas.component.html',
-  styleUrls: ['./modulo-vendas.component.css'],
+    selector: 'app-modulo-vendas',
+    templateUrl: './modulo-vendas.component.html',
+    styleUrls: ['./modulo-vendas.component.css'],
+    standalone: false
 })
 export class ModuloVendasComponent implements OnInit, OnDestroy {
   items: MenuItem[] | undefined;

@@ -33,9 +33,10 @@ export interface Usuario {
 }
 
 @Component({
-  selector: 'app-usuario',
-  templateUrl: './usuario.component.html',
-  styleUrls: []
+    selector: 'app-usuario',
+    templateUrl: './usuario.component.html',
+    styleUrls: [],
+    standalone: false
 })
 export class UsuarioComponent implements OnInit, OnDestroy {
 
@@ -232,6 +233,7 @@ export class UsuarioComponent implements OnInit, OnDestroy {
     );
   }
 
+  
   /**
  * Retorna a severidade com base no status fornecido.
  *

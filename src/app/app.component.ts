@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { PrimeNGConfig } from 'primeng/api';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['../styles.scss']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['../styles.scss'],
+    standalone: false
 })
 export class AppComponent implements OnInit {
 

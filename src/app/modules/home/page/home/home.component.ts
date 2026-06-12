@@ -7,9 +7,10 @@ import { UsuarioService } from 'src/app/services/cadastro/usuario/usuario.servic
 import { ConfigService } from 'src/app/services/configuracoes/configuracoes.service';
 
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: [],
+    selector: 'app-home',
+    templateUrl: './home.component.html',
+    styleUrls: [],
+    standalone: false
 })
 export class HomeComponent implements OnInit, OnDestroy {
   private destroy$: Subject<void> = new Subject<void>();
